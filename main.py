@@ -4,7 +4,7 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 import telebot
 from telebot import types
 
-# Server web integrato per il piano GRATUITO di Render
+# Server web integrato per mantenere attivo il bot su Render
 class HealthCheckHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
@@ -26,18 +26,24 @@ bot = telebot.TeleBot(TELEGRAM_TOKEN)
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
+    print(f"Ricevuto /start da {message.chat.id}")
     welcome_text = (
-        "👋 **Benvenuto nello shop di BostonGeorge!**\n\n"
-        "Qui troverai tutti i prodotti che ti servono per te o per il tuo business.\n\n"
-        "📦 - Tutti i PRODOTTI sono in pronta consegna\n"
-        "🇮🇹 - Spedizione Da ITALIA\n"
-        "🇪🇸 - Spedizione Da Spagna\n"
-        "🇨🇿 - Spedizione Da Repubblica ceca"
+        "👋 **Benvenuti nello shop di Boston George 420!**\n\n"
+        "Qui troverete tutti i prodotti ideali per voi o per il vostro business.\n\n"
+        "📦 Tutti i PRODOTTI sono in pronta consegna\n"
+        "🤝 Consegna a mano disponibile\n\n"
+        "🚚 **Spedizioni da:**\n"
+        "🇮🇹 Italia\n"
+        "🇪🇸 Spagna\n"
+        "🇳🇱 Olanda\n"
+        "🇺🇸 USA\n\n"
+        "🛍️ Cliccate in basso per aprire la vetrina!"
     )
     
     markup = types.InlineKeyboardMarkup()
     if WEB_APP_URL:
-        web_app_info = types.WebAppInfo(WEB_APP_URL)
+        clean_url = WEB_APP_URL.strip()
+        web_app_info = types.WebAppInfo(clean_url)
         btn = types.InlineKeyboardButton("🛍 Apri la vetrina", web_app=web_app_info)
         markup.add(btn)
     
@@ -47,5 +53,6 @@ def send_welcome(message):
 def admin_panel(message):
     bot.reply_to(message, "⚙️ **Pannello Gestionale Attivo**")
 
-print("🤖 Bot Telegram avviato H24...")
-bot.infinity_polling()
+print("🤖 Reset Webhook e avvio Bot...")
+bot.remove_webhook()
+bot.infinity_polling(skip_pending=True)
