@@ -16,7 +16,7 @@ ADMIN_ID = int(os.environ.get('ADMIN_ID', 0))
 bot = telebot.TeleBot(TELEGRAM_TOKEN)
 user_states = {}
 
-# --- SERVER KEEP-ALIVE ---
+# --- SERVER KEEP-ALIVE PER RENDER / UPTIMEROBOT ---
 class HealthCheckHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
@@ -309,6 +309,7 @@ def handle_callbacks(call):
         user_states[user_id] = {"step": "WAITING_TRACKING", "target_order": o_id, "target_user": u_id}
         bot.send_message(user_id, f"🚚 Invia ora il **Codice di Tracking** per l'Ordine #{o_id}:")
 
+# --- MULTI-STEP WIZARD ---
 @bot.message_handler(content_types=['photo', 'video'])
 def handle_media(message):
     user_id = message.chat.id
@@ -363,11 +364,12 @@ def handle_admin_text(message):
 
     elif step == "WAITING_PRICES":
         try:
-            raw = message.text.split(",")
+            clean_text = message.text.replace("–", "-").replace("—", "-")
+            raw = clean_text.split(",")
             prices = []
             for r in raw:
                 p = r.split("-")
-                prices.append({"qty": p[0].strip(), "price": float(p[1].strip().replace("€", ""))})
+                prices.append({"qty": p[0].strip(), "price": float(p[1].strip().replace("€", "").strip())})
         except Exception:
             bot.reply_to(message, "❌ Formato non valido. Esempio corretto: `10g - 50, 25g - 100`")
             return
