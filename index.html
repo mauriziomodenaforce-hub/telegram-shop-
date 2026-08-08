@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Boston George 420</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
     body {
@@ -25,7 +25,14 @@
   <script>
     const SUPABASE_URL = "https://hvjzhgixdgozpjqjeipf.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2anpoZ2l4ZGdvenBqcWplaXBmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYwOTg0ODcsImV4cCI6MjEwMTY3NDQ4N30.WsXI7PtlLM4xqffPyWcjZqxrC0nHGmjurIT0cSVNy6U";
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    
+    let db;
+    try {
+      db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    } catch(e) {
+      console.error("Init Error:", e);
+    }
+    
     const tg = window.Telegram?.WebApp;
     if (tg) tg.expand();
   </script>
@@ -47,7 +54,7 @@
     </div>
   </header>
 
-  <!-- MENU LATERALE COMPLETO -->
+  <!-- MENU LATERALE -->
   <div id="drawer-overlay" onclick="toggleDrawer()" class="fixed inset-0 bg-black/60 z-40 hidden backdrop-blur-sm"></div>
   <aside id="drawer" class="fixed top-0 right-0 w-72 h-full bg-[#181818] z-50 transform translate-x-full drawer p-5 flex flex-col justify-between border-l border-gray-800">
     <div>
@@ -116,10 +123,6 @@
         <i data-lucide="shopping-bag" class="w-5 h-5"></i>
         <span>Sfoglia i prodotti</span>
       </button>
-      <button onclick="alert('Punti fedeltà in arrivo con il prossimo aggiornamento!')" class="w-full bg-gray-800/90 hover:bg-gray-800 text-amber-400 font-bold py-3 px-4 rounded-xl border border-amber-500/20 flex items-center justify-center space-x-2">
-        <i data-lucide="trophy" class="w-5 h-5"></i>
-        <span>I miei punti e trofei</span>
-      </button>
     </div>
 
     <div class="space-y-3" id="products-section">
@@ -157,17 +160,21 @@
     }
 
     async function loadProducts() {
+      const container = document.getElementById('products-grid');
       try {
-        const { data, error } = await supabase.from('products').select('*').eq('in_showcase', true);
+        if (!db) throw new Error("Supabase client non inizializzato");
+        
+        const { data, error } = await db.from('products').select('*');
         if (error) throw error;
+        
         allProducts = data || [];
         document.getElementById('stat-products').innerText = allProducts.length;
         renderProducts(allProducts);
       } catch (err) {
         console.error("Errore Supabase:", err);
-        document.getElementById('products-grid').innerHTML = `
-          <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center text-xs text-gray-400">
-            Nessun prodotto presente. Aggiungine uno usando <b>/admin</b> sul Bot Telegram!
+        container.innerHTML = `
+          <div class="bg-red-900/30 border border-red-800 rounded-xl p-4 text-center text-xs text-red-300">
+            <b>Errore caricamento prodotti:</b><br>${err.message || JSON.stringify(err)}
           </div>`;
       }
     }
@@ -175,11 +182,18 @@
     function renderProducts(products) {
       const container = document.getElementById('products-grid');
       if (products.length === 0) {
-        container.innerHTML = `<div class="text-center py-6 text-gray-500 text-xs">Nessun prodotto in questa categoria.</div>`;
+        container.innerHTML = `<div class="text-center py-6 text-gray-500 text-xs">Nessun prodotto disponibile in vetrina.</div>`;
         return;
       }
 
-      container.innerHTML = products.map(p => `
+      container.innerHTML = products.map(p => {
+        let opts = p.price_options;
+        if (typeof opts === 'string') {
+          try { opts = JSON.parse(opts); } catch(e) { opts = []; }
+        }
+        opts = opts || [];
+
+        return `
         <div class="bg-gray-900/90 border border-gray-800 rounded-2xl overflow-hidden shadow-lg">
           ${p.media_type === 'video' ? `
             <video class="w-full h-48 object-cover" autoplay loop muted playsinline src="${p.media_url}"></video>
@@ -189,14 +203,14 @@
           <div class="p-4 space-y-3">
             <div class="flex justify-between items-start">
               <div>
-                <span class="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">${p.category}</span>
-                <h3 class="font-bold text-base text-white">${p.name}</h3>
+                <span class="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">${p.category || ''}</span>
+                <h3 class="font-bold text-base text-white">${p.name || ''}</h3>
               </div>
             </div>
             <p class="text-xs text-gray-400 line-clamp-2">${p.description || ''}</p>
             
             <div class="space-y-1.5 border-t border-gray-800 pt-3">
-              ${(p.price_options || []).map(opt => `
+              ${opts.map(opt => `
                 <div class="flex justify-between items-center bg-gray-800/50 px-3 py-2 rounded-lg text-xs">
                   <span class="font-medium text-gray-200">${opt.qty}</span>
                   <div class="flex items-center space-x-3">
@@ -208,7 +222,7 @@
             </div>
           </div>
         </div>
-      `).join('');
+      `}).join('');
       lucide.createIcons();
     }
 
