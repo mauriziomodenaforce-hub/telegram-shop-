@@ -7,16 +7,16 @@ import telebot
 from telebot import types
 
 # --- VARIABILI D'AMBIENTE ---
-TELEGRAM_TOKEN = os.environ.get('TELEGRAM_TOKEN')
-WEB_APP_URL = os.environ.get('WEB_APP_URL')
-SUPABASE_URL = os.environ.get('SUPABASE_URL')
-SUPABASE_KEY = os.environ.get('SUPABASE_KEY')
+TELEGRAM_TOKEN = os.environ.get('TELEGRAM_TOKEN', '').strip()
+WEB_APP_URL = os.environ.get('WEB_APP_URL', '').strip()
+SUPABASE_URL = os.environ.get('SUPABASE_URL', '').strip().rstrip('/')
+SUPABASE_KEY = os.environ.get('SUPABASE_KEY', '').strip()
 ADMIN_ID = int(os.environ.get('ADMIN_ID', 0))
 
 bot = telebot.TeleBot(TELEGRAM_TOKEN)
 user_states = {}
 
-# --- SERVER KEEP-ALIVE PER RENDER / UPTIMEROBOT ---
+# --- SERVER KEEP-ALIVE ---
 class HealthCheckHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
@@ -52,13 +52,17 @@ def db_register_user(user_id, username):
         print(f"Errore registrazione: {e}")
 
 def db_add_product(product_data):
+    if not SUPABASE_URL or not SUPABASE_KEY:
+        return False, "Mancano SUPABASE_URL o SUPABASE_KEY su Render."
     url = f"{SUPABASE_URL}/rest/v1/products"
     try:
         r = requests.post(url, headers=get_headers(), json=product_data)
-        return r.status_code in [200, 201]
+        if r.status_code in [200, 201]:
+            return True, "OK"
+        else:
+            return False, f"HTTP {r.status_code}: {r.text}"
     except Exception as e:
-        print(f"Errore add_product: {e}")
-        return False
+        return False, str(e)
 
 def db_get_products():
     url = f"{SUPABASE_URL}/rest/v1/products?select=*&order=created_at.desc"
@@ -126,7 +130,7 @@ def db_update_user_points(target_id, points_delta):
         print(f"Errore punti: {e}")
     return False, 0
 
-# --- MENU TASTI INLINE ADMIN ---
+# --- MENU ADMIN ---
 def get_admin_main_keyboard():
     markup = types.InlineKeyboardMarkup(row_width=1)
     markup.add(
@@ -166,7 +170,7 @@ def send_welcome(message):
     
     markup = types.InlineKeyboardMarkup()
     if WEB_APP_URL:
-        btn = types.InlineKeyboardButton("🛍 Apri la vetrina", web_app=types.WebAppInfo(WEB_APP_URL.strip()))
+        btn = types.InlineKeyboardButton("🛍 Apri la vetrina", web_app=types.WebAppInfo(WEB_APP_URL))
         markup.add(btn)
     
     bot.send_message(user_id, welcome_text, parse_mode='Markdown', reply_markup=markup)
@@ -185,7 +189,7 @@ def admin_panel(message):
         reply_markup=get_admin_main_keyboard()
     )
 
-# --- NOTIFICA ACQUISTO DA WEB APP ---
+# --- NOTIFICA ACQUISTO ---
 @bot.message_handler(content_types=['web_app_data'])
 def handle_web_app_data(message):
     try:
@@ -309,7 +313,7 @@ def handle_callbacks(call):
         user_states[user_id] = {"step": "WAITING_TRACKING", "target_order": o_id, "target_user": u_id}
         bot.send_message(user_id, f"🚚 Invia ora il **Codice di Tracking** per l'Ordine #{o_id}:")
 
-# --- MULTI-STEP WIZARD ---
+# --- WIZARD INPUT ---
 @bot.message_handler(content_types=['photo', 'video'])
 def handle_media(message):
     user_id = message.chat.id
@@ -385,10 +389,11 @@ def handle_admin_text(message):
             "in_showcase": True
         }
 
-        if db_add_product(prod_payload):
+        success, err_msg = db_add_product(prod_payload)
+        if success:
             bot.reply_to(message, f"🎉 **PRODOTTO PUBBLICATO IN VETRINA!**\n\n📦 **{st['name']}**\n🏷️ Categoria: {st['category']}")
         else:
-            bot.reply_to(message, "❌ Errore durante la pubblicazione su Supabase.")
+            bot.reply_to(message, f"❌ **Errore Supabase:**\n`{err_msg}`", parse_mode='Markdown')
 
         user_states.pop(user_id, None)
 
