@@ -30,6 +30,7 @@
     if (tg) tg.expand();
   </script>
 
+  <!-- NAVBAR -->
   <header class="sticky top-0 z-30 bg-[#1e1e1e]/90 backdrop-blur-md px-4 py-3 flex justify-between items-center border-b border-gray-800">
     <div class="flex items-center space-x-3">
       <div class="w-9 h-9 rounded-full bg-cover bg-center border border-emerald-500" style="background-image: url('https://files.catbox.moe/smngwm.png');"></div>
@@ -46,6 +47,7 @@
     </div>
   </header>
 
+  <!-- MENU LATERALE COMPLETO -->
   <div id="drawer-overlay" onclick="toggleDrawer()" class="fixed inset-0 bg-black/60 z-40 hidden backdrop-blur-sm"></div>
   <aside id="drawer" class="fixed top-0 right-0 w-72 h-full bg-[#181818] z-50 transform translate-x-full drawer p-5 flex flex-col justify-between border-l border-gray-800">
     <div>
@@ -56,7 +58,7 @@
         </button>
       </div>
       <nav class="space-y-1">
-        <a href="#" onclick="showSection('home')" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl bg-emerald-500/10 text-emerald-400 font-medium">
+        <a href="#" onclick="toggleDrawer();" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl bg-emerald-500/10 text-emerald-400 font-medium">
           <i data-lucide="home" class="w-5 h-5"></i><span>Home</span>
         </a>
         <a href="#" onclick="scrollToProducts(); toggleDrawer();" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-gray-300 hover:bg-gray-800 transition">
@@ -65,6 +67,15 @@
         <a href="#" onclick="toggleCart(); toggleDrawer();" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-gray-300 hover:bg-gray-800 transition">
           <i data-lucide="shopping-bag" class="w-5 h-5"></i><span>Carrello</span>
         </a>
+        <a href="#" onclick="alert('Punti fedeltà in arrivo con il prossimo aggiornamento!'); toggleDrawer();" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-gray-300 hover:bg-gray-800 transition">
+          <i data-lucide="zap" class="w-5 h-5 text-amber-400"></i><span>I miei punti</span>
+        </a>
+        <a href="#" onclick="alert('Tracking Ordini in arrivo!'); toggleDrawer();" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-gray-300 hover:bg-gray-800 transition">
+          <i data-lucide="truck" class="w-5 h-5"></i><span>Tracking Ordini</span>
+        </a>
+        <a href="#" onclick="alert('Supporto attivo via Bot Telegram!'); toggleDrawer();" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-gray-300 hover:bg-gray-800 transition">
+          <i data-lucide="headphones" class="w-5 h-5"></i><span>Contatti</span>
+        </a>
       </nav>
     </div>
     <div class="border-t border-gray-800 pt-4 text-xs text-center text-gray-500">
@@ -72,6 +83,7 @@
     </div>
   </aside>
 
+  <!-- CONTENUTO PRINCIPALE -->
   <main class="p-4 space-y-6">
     <div class="relative rounded-2xl overflow-hidden border border-gray-800 bg-gray-900 shadow-2xl">
       <video class="w-full h-48 object-cover" autoplay loop muted playsinline src="https://files.catbox.moe/2a9rqy.mov">
@@ -91,6 +103,23 @@
     <div class="bg-gray-900/80 border border-gray-800 rounded-2xl p-4 space-y-2 text-sm text-gray-300">
       <p class="font-medium text-white">👋 Benvenuto nello shop di Boston George 420!</p>
       <p class="text-xs text-gray-400">📦 Tutti i prodotti in pronta consegna con spedizioni riservate e sicure.</p>
+      <div class="flex flex-wrap gap-2 pt-1 text-xs">
+        <span class="bg-gray-800 px-2 py-1 rounded-md">🇮🇹 Italia</span>
+        <span class="bg-gray-800 px-2 py-1 rounded-md">🇪🇸 Spagna</span>
+        <span class="bg-gray-800 px-2 py-1 rounded-md">🇳🇱 Olanda</span>
+        <span class="bg-gray-800 px-2 py-1 rounded-md">🇺🇸 USA</span>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 gap-3">
+      <button onclick="scrollToProducts()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-black font-extrabold py-3.5 px-4 rounded-xl flex items-center justify-center space-x-2 shadow-lg shadow-emerald-500/20">
+        <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+        <span>Sfoglia i prodotti</span>
+      </button>
+      <button onclick="alert('Punti fedeltà in arrivo con il prossimo aggiornamento!')" class="w-full bg-gray-800/90 hover:bg-gray-800 text-amber-400 font-bold py-3 px-4 rounded-xl border border-amber-500/20 flex items-center justify-center space-x-2">
+        <i data-lucide="trophy" class="w-5 h-5"></i>
+        <span>I miei punti e trofei</span>
+      </button>
     </div>
 
     <div class="space-y-3" id="products-section">
