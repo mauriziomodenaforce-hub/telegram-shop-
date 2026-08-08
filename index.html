@@ -93,9 +93,8 @@
   <!-- CONTENUTO PRINCIPALE -->
   <main class="p-4 space-y-6">
     <div class="relative rounded-2xl overflow-hidden border border-gray-800 bg-gray-900 shadow-2xl">
-      <video class="w-full h-48 object-cover" autoplay loop muted playsinline src="https://files.catbox.moe/2a9rqy.mov">
-        <source src="https://files.catbox.moe/2a9rqy.mov">
-      </video>
+      <!-- VIDEO IN AUTOPLAY FORZATO -->
+      <video id="banner-video" class="w-full h-48 object-cover" autoplay loop muted playsinline webkit-playsinline preload="auto" src="https://files.catbox.moe/2a9rqy.mov"></video>
       <div class="absolute inset-0 bg-gradient-to-t from-[#121212] via-black/40 to-transparent"></div>
       <div class="absolute bottom-3 left-4 right-4">
         <h1 class="text-2xl font-black text-white tracking-wide">Boston George 420</h1>
@@ -148,6 +147,17 @@
     let allProducts = [];
     let cart = [];
 
+    // Forza la riproduzione automatica del video banner
+    document.addEventListener("DOMContentLoaded", () => {
+      const vid = document.getElementById("banner-video");
+      if (vid) {
+        vid.muted = true;
+        vid.play().catch(() => {
+          document.addEventListener('touchstart', () => vid.play(), { once: true });
+        });
+      }
+    });
+
     function toggleDrawer() {
       const drawer = document.getElementById('drawer');
       const overlay = document.getElementById('drawer-overlay');
@@ -196,7 +206,7 @@
         return `
         <div class="bg-gray-900/90 border border-gray-800 rounded-2xl overflow-hidden shadow-lg">
           ${p.media_type === 'video' ? `
-            <video class="w-full h-48 object-cover" autoplay loop muted playsinline src="${p.media_url}"></video>
+            <video class="w-full h-48 object-cover" autoplay loop muted playsinline webkit-playsinline src="${p.media_url}"></video>
           ` : `
             <img class="w-full h-48 object-cover" src="${p.media_url || 'https://images.unsplash.com/photo-1527661591475-527312dd65f5'}" />
           `}
@@ -285,4 +295,3 @@
   </script>
 </body>
 </html>
-
