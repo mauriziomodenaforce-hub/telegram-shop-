@@ -16,20 +16,6 @@ ADMIN_ID = int(os.environ.get('ADMIN_ID', 0))
 bot = telebot.TeleBot(TELEGRAM_TOKEN)
 user_states = {}
 
-# --- SERVER KEEP-ALIVE ---
-class HealthCheckHandler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        self.send_response(200)
-        self.end_headers()
-        self.wfile.write(b"Bot & Admin Panel 100% Active")
-
-def run_health_server():
-    port = int(os.environ.get("PORT", 8080))
-    server = HTTPServer(('0.0.0.0', port), HealthCheckHandler)
-    server.serve_forever()
-
-threading.Thread(target=run_health_server, daemon=True).start()
-
 # --- HELPER SUPABASE REST API ---
 def get_headers():
     return {
@@ -130,6 +116,82 @@ def db_update_user_points(target_id, points_delta):
         print(f"Errore punti: {e}")
     return False, 0
 
+# --- SERVER API ED ORDINI ---
+class HealthCheckHandler(BaseHTTPRequestHandler):
+    def do_OPTIONS(self):
+        self.send_response(200)
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.end_headers()
+
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.end_headers()
+        self.wfile.write(b"Bot & Admin Panel 100% Active")
+
+    def do_POST(self):
+        if self.path == '/api/order':
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length)
+            data = json.loads(post_data.decode('utf-8'))
+
+            cart = data.get("cart", [])
+            total = data.get("total", 0)
+            user_id = data.get("user_id")
+            username = data.get("username", "Anonimo")
+
+            order_id = db_save_order(user_id, username, cart, total)
+
+            # Notifica all'Utente
+            if user_id:
+                try:
+                    bot.send_message(
+                        user_id,
+                        f"🎉 **Ordine #{order_id} Inviato con Successo!**\n\n"
+                        f"Totale: **€{total}**\n"
+                        "Un operatore prenderà in carico la tua richiesta a breve."
+                    )
+                except Exception as e:
+                    print(f"Errore notifica utente: {e}")
+
+            # Notifica all'Admin
+            items_text = "\n".join([f"• {i['name']} ({i['qty']}) - €{i['price']}" for i in cart])
+            admin_msg = (
+                f"🚨 **NUOVO ORDINE RICEVUTO! #{order_id}**\n\n"
+                f"👤 Utente: @{username} (`{user_id}`)\n"
+                f"📦 Prodotti:\n{items_text}\n\n"
+                f"💰 **Totale: €{total}**"
+            )
+
+            markup = types.InlineKeyboardMarkup(row_width=2)
+            markup.add(
+                types.InlineKeyboardButton("✅ Accetta", callback_data=f"ord_acc_{order_id}_{user_id}"),
+                types.InlineKeyboardButton("❌ Annulla", callback_data=f"ord_cnc_{order_id}_{user_id}"),
+                types.InlineKeyboardButton("🚚 Invia Tracking", callback_data=f"ord_trk_{order_id}_{user_id}")
+            )
+            try:
+                bot.send_message(ADMIN_ID, admin_msg, parse_mode='Markdown', reply_markup=markup)
+            except Exception as e:
+                print(f"Errore notifica admin: {e}")
+
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(json.dumps({"success": True, "order_id": order_id}).encode('utf-8'))
+        else:
+            self.send_response(404)
+            self.end_headers()
+
+def run_health_server():
+    port = int(os.environ.get("PORT", 8080))
+    server = HTTPServer(('0.0.0.0', port), HealthCheckHandler)
+    server.serve_forever()
+
+threading.Thread(target=run_health_server, daemon=True).start()
+
 # --- MENU ADMIN ---
 def get_admin_main_keyboard():
     markup = types.InlineKeyboardMarkup(row_width=1)
@@ -156,7 +218,7 @@ def send_welcome(message):
     user_id = message.chat.id
     username = message.from_user.username
     db_register_user(user_id, username)
-    
+
     welcome_text = (
         "👋 **Benvenuti nello shop di Boston George 420!**\n\n"
         "Qui troverete tutti i prodotti ideali per voi o per il vostro business.\n\n"
@@ -167,12 +229,12 @@ def send_welcome(message):
         "🇺🇸 USA\n\n"
         "🛍️ Cliccate in basso per aprire la vetrina!"
     )
-    
+
     markup = types.InlineKeyboardMarkup()
     if WEB_APP_URL:
         btn = types.InlineKeyboardButton("🛍 Apri la vetrina", web_app=types.WebAppInfo(WEB_APP_URL))
         markup.add(btn)
-    
+
     bot.send_message(user_id, welcome_text, parse_mode='Markdown', reply_markup=markup)
 
 # --- COMANDO ADMIN ---
@@ -181,51 +243,13 @@ def admin_panel(message):
     if message.chat.id != ADMIN_ID:
         bot.reply_to(message, "⛔️ Accesso negato. Pannello riservato all'Amministratore.")
         return
-    
+
     bot.send_message(
         message.chat.id,
         "⚙️ **PANNELLO GESTIONALE AMMINISTRATORE**\n\nScegli la sezione da gestire:",
         parse_mode='Markdown',
         reply_markup=get_admin_main_keyboard()
     )
-
-# --- NOTIFICA ACQUISTO ---
-@bot.message_handler(content_types=['web_app_data'])
-def handle_web_app_data(message):
-    try:
-        data = json.loads(message.web_app_data.data)
-        cart = data.get("cart", [])
-        total = data.get("total", 0)
-        user_id = message.chat.id
-        username = message.from_user.username or "Anonimo"
-
-        order_id = db_save_order(user_id, username, cart, total)
-
-        bot.send_message(
-            user_id,
-            f"🎉 **Ordine #{order_id} Inviato con Successo!**\n\n"
-            f"Totale: **€{total}**\n"
-            "Un operatore prenderà in carico la tua richiesta a breve."
-        )
-
-        items_text = "\n".join([f"• {i['name']} ({i['qty']}) - €{i['price']}" for i in cart])
-        admin_msg = (
-            f"🚨 **NUOVO ORDINE RICEVUTO! #{order_id}**\n\n"
-            f"👤 Utente: @{username} (`{user_id}`)\n"
-            f"📦 Prodotti:\n{items_text}\n\n"
-            f"💰 **Totale: €{total}**"
-        )
-        
-        markup = types.InlineKeyboardMarkup(row_width=2)
-        markup.add(
-            types.InlineKeyboardButton("✅ Accetta", callback_data=f"ord_acc_{order_id}_{user_id}"),
-            types.InlineKeyboardButton("❌ Annulla", callback_data=f"ord_cnc_{order_id}_{user_id}"),
-            types.InlineKeyboardButton("🚚 Invia Tracking", callback_data=f"ord_trk_{order_id}_{user_id}")
-        )
-        bot.send_message(ADMIN_ID, admin_msg, parse_mode='Markdown', reply_markup=markup)
-
-    except Exception as e:
-        print(f"Errore web_app_data: {e}")
 
 # --- CALLBACK QUERY HANDLER ---
 @bot.callback_query_handler(func=lambda call: True)
@@ -299,13 +323,15 @@ def handle_callbacks(call):
     elif data.startswith("ord_acc_"):
         _, _, o_id, u_id = data.split("_")
         db_update_order_status(o_id, "ACCEPTED")
-        bot.send_message(int(u_id), f"✅ **Il tuo ordine #{o_id} è stato confermato!**\nInizieremo subito la preparazione.")
+        if u_id and u_id != "0":
+            bot.send_message(int(u_id), f"✅ **Il tuo ordine #{o_id} è stato confermato!**\nInizieremo subito la preparazione.")
         bot.answer_callback_query(call.id, "Ordine accettato")
 
     elif data.startswith("ord_cnc_"):
         _, _, o_id, u_id = data.split("_")
         db_update_order_status(o_id, "CANCELLED")
-        bot.send_message(int(u_id), f"❌ **Il tuo ordine #{o_id} è stato annullato.** Contatta il supporto per chiarimenti.")
+        if u_id and u_id != "0":
+            bot.send_message(int(u_id), f"❌ **Il tuo ordine #{o_id} è stato annullato.** Contatta il supporto per chiarimenti.")
         bot.answer_callback_query(call.id, "Ordine annullato")
 
     elif data.startswith("ord_trk_"):
@@ -403,14 +429,18 @@ def handle_admin_text(message):
         u_id = state.get("target_user")
 
         db_update_order_status(o_id, "SHIPPED", tracking_code)
-        bot.send_message(
-            int(u_id),
-            f"🚚 **IL TUO ORDINE #{o_id} È STATO SPEDITO!**\n\nCodice di Tracking: `{tracking_code}`",
-            parse_mode='Markdown'
-        )
+        if u_id and u_id != "0":
+            bot.send_message(
+                int(u_id),
+                f"🚚 **IL TUO ORDINE #{o_id} È STATO SPEDITO!**\n\nCodice di Tracking: `{tracking_code}`",
+                parse_mode='Markdown'
+            )
         bot.reply_to(message, f"✅ Tracking per Ordine #{o_id} inviato all'acquirente!")
         user_states.pop(user_id, None)
 
 print("🤖 Avvio Bot Admin in corso...")
+bot.remove_webhook()
+bot.infinity_polling(skip_pending=True)
+
 bot.remove_webhook()
 bot.infinity_polling(skip_pending=True)
