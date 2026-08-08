@@ -16,7 +16,7 @@ ADMIN_ID = int(os.environ.get('ADMIN_ID', 0))
 bot = telebot.TeleBot(TELEGRAM_TOKEN)
 user_states = {}
 
-# --- SERVER KEEP-ALIVE PER RENDER / UPTIMEROBOT ---
+# --- SERVER KEEP-ALIVE ---
 class HealthCheckHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
@@ -197,7 +197,6 @@ def handle_web_app_data(message):
 
         order_id = db_save_order(user_id, username, cart, total)
 
-        # Conferma all'utente
         bot.send_message(
             user_id,
             f"🎉 **Ordine #{order_id} Inviato con Successo!**\n\n"
@@ -205,7 +204,6 @@ def handle_web_app_data(message):
             "Un operatore prenderà in carico la tua richiesta a breve."
         )
 
-        # Notifica istantanea all’Admin
         items_text = "\n".join([f"• {i['name']} ({i['qty']}) - €{i['price']}" for i in cart])
         admin_msg = (
             f"🚨 **NUOVO ORDINE RICEVUTO! #{order_id}**\n\n"
@@ -234,7 +232,6 @@ def handle_callbacks(call):
 
     data = call.data
 
-    # --- NAVIGAZIONE MENU PRINCIPALI ---
     if data == "m_main":
         bot.edit_message_text("⚙️ **PANNELLO GESTIONALE AMMINISTRATORE**", user_id, call.message.message_id, parse_mode='Markdown', reply_markup=get_admin_main_keyboard())
 
@@ -250,7 +247,6 @@ def handle_callbacks(call):
     elif data == "m_cfg":
         bot.send_message(user_id, "🎨 **GRAFICA & INFO SHOP**\n\nPuoi personalizzare il video del banner e il logo sostituendo i link in `index.html` su GitHub.", parse_mode='Markdown')
 
-    # --- FLUSSO AGGIUNTA PRODOTTO ---
     elif data == "p_add":
         markup = types.InlineKeyboardMarkup(row_width=2)
         cats = ["🇮🇹 Italia", "🇪🇸 Spagna", "🇳🇱 Olanda", "🇺🇸 USA"]
@@ -263,7 +259,6 @@ def handle_callbacks(call):
         user_states[user_id] = {"category": cat, "step": "WAITING_MEDIA"}
         bot.edit_message_text(f"Categoria scelta: **{cat}**\n\n📸 Ora invia la **Foto o Video** del prodotto.", user_id, call.message.message_id, parse_mode='Markdown')
 
-    # --- LISTA / MODIFICA / ELIMINA PRODOTTI ---
     elif data == "p_list":
         prods = db_get_products()
         if not prods:
@@ -297,7 +292,6 @@ def handle_callbacks(call):
         else:
             bot.answer_callback_query(call.id, "❌ Errore eliminazione.")
 
-    # --- GESTIONE AZIONI ORDINI ---
     elif data.startswith("ord_acc_"):
         _, _, o_id, u_id = data.split("_")
         db_update_order_status(o_id, "ACCEPTED")
@@ -315,7 +309,6 @@ def handle_callbacks(call):
         user_states[user_id] = {"step": "WAITING_TRACKING", "target_order": o_id, "target_user": u_id}
         bot.send_message(user_id, f"🚚 Invia ora il **Codice di Tracking** per l'Ordine #{o_id}:")
 
-# --- MULTI-STEP WIZARD (INPUT TESTUALI E MEDIA) ---
 @bot.message_handler(content_types=['photo', 'video'])
 def handle_media(message):
     user_id = message.chat.id
@@ -344,7 +337,6 @@ def handle_admin_text(message):
     state = user_states.get(user_id, {})
     step = state.get("step")
 
-    # Comando rapido Punti Admin: /punti 12345678 100
     if message.text.startswith("/punti"):
         try:
             parts = message.text.split(" ")
@@ -412,7 +404,6 @@ def handle_admin_text(message):
         bot.reply_to(message, f"✅ Tracking per Ordine #{o_id} inviato all'acquirente!")
         user_states.pop(user_id, None)
 
-# --- AVVIO BOT ---
 print("🤖 Avvio Bot Admin in corso...")
 bot.remove_webhook()
 bot.infinity_polling(skip_pending=True)
