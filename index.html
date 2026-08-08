@@ -246,21 +246,37 @@
       if (tg) tg.HapticFeedback?.impactOccurred('light');
     }
 
-    function toggleCart() {
+    async function toggleCart() {
       if (cart.length === 0) {
         alert("Il carrello è vuoto!");
         return;
       }
       let total = cart.reduce((sum, item) => sum + item.price, 0);
       let summary = cart.map(i => `• ${i.name} (${i.qty}) - €${i.price}`).join('\n');
+      
       if (confirm(`Riepilogo Carrello:\n\n${summary}\n\nTotale: €${total}\n\nVuoi confermare l'ordine?`)) {
-        if (tg) {
-          tg.sendData(JSON.stringify({ cart, total }));
-          tg.close();
-        } else {
-          alert("Ordine inviato con successo!");
-          cart = [];
-          document.getElementById('cart-badge').classList.add('hidden');
+        const user = tg?.initDataUnsafe?.user || {};
+        const userId = user.id || 0;
+        const username = user.username || user.first_name || "Anonimo";
+
+        try {
+          const res = await fetch("https://telegram-shop-9swy.onrender.com/api/order", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ cart, total, user_id: userId, username })
+          });
+
+          if (res.ok) {
+            alert("🎉 Ordine inviato con successo! Riceverai la conferma nella chat del bot.");
+            cart = [];
+            document.getElementById('cart-badge').classList.add('hidden');
+            if (tg) tg.close();
+          } else {
+            alert("❌ Errore nell'invio dell'ordine al server. Riprova.");
+          }
+        } catch (e) {
+          console.error("Errore Invio:", e);
+          alert("❌ Errore di connessione. Riprova tra poco.");
         }
       }
     }
@@ -269,3 +285,4 @@
   </script>
 </body>
 </html>
+
