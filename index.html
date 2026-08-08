@@ -1,417 +1,228 @@
-import os
-import json
-import threading
-from http.server import HTTPServer, BaseHTTPRequestHandler
-import requests
-import telebot
-from telebot import types
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Boston George 420</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    body {
+      background-color: #121212;
+      color: #f3f4f6;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      user-select: none;
+    }
+    .drawer { transition: transform 0.3s ease-in-out; }
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="pb-24">
 
-# --- VARIABILI D'AMBIENTE ---
-TELEGRAM_TOKEN = os.environ.get('TELEGRAM_TOKEN')
-WEB_APP_URL = os.environ.get('WEB_APP_URL')
-SUPABASE_URL = os.environ.get('SUPABASE_URL')
-SUPABASE_KEY = os.environ.get('SUPABASE_KEY')
-ADMIN_ID = int(os.environ.get('ADMIN_ID', 0))
+  <script>
+    const SUPABASE_URL = "https://hvjzhgixdgozpjqjeipf.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2anpoZ2l4ZGdvenBqcWplaXBmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYwOTg0ODcsImV4cCI6MjEwMTY3NDQ4N30.WsXI7PtlLM4xqffPyWcjZqxrC0nHGmjurIT0cSVNy6U";
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const tg = window.Telegram?.WebApp;
+    if (tg) tg.expand();
+  </script>
 
-bot = telebot.TeleBot(TELEGRAM_TOKEN)
-user_states = {}
+  <header class="sticky top-0 z-30 bg-[#1e1e1e]/90 backdrop-blur-md px-4 py-3 flex justify-between items-center border-b border-gray-800">
+    <div class="flex items-center space-x-3">
+      <div class="w-9 h-9 rounded-full bg-cover bg-center border border-emerald-500" style="background-image: url('https://files.catbox.moe/smngwm.png');"></div>
+      <span class="font-bold text-lg tracking-wide">Boston George 420</span>
+    </div>
+    <div class="flex items-center space-x-2">
+      <button onclick="toggleCart()" class="relative p-2 rounded-lg bg-gray-800 hover:bg-gray-700">
+        <i data-lucide="shopping-cart" class="w-5 h-5 text-gray-200"></i>
+        <span id="cart-badge" class="absolute -top-1 -right-1 bg-emerald-500 text-black text-xs font-bold w-4 h-4 rounded-full flex items-center justify-center hidden">0</span>
+      </button>
+      <button onclick="toggleDrawer()" class="p-2 rounded-lg bg-gray-800 hover:bg-gray-700">
+        <i data-lucide="menu" class="w-6 h-6 text-gray-200"></i>
+      </button>
+    </div>
+  </header>
 
-# --- SERVER KEEP-ALIVE PER RENDER / UPTIMEROBOT ---
-class HealthCheckHandler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        self.send_response(200)
-        self.end_headers()
-        self.wfile.write(b"Bot & Admin Panel 100% Active")
+  <div id="drawer-overlay" onclick="toggleDrawer()" class="fixed inset-0 bg-black/60 z-40 hidden backdrop-blur-sm"></div>
+  <aside id="drawer" class="fixed top-0 right-0 w-72 h-full bg-[#181818] z-50 transform translate-x-full drawer p-5 flex flex-col justify-between border-l border-gray-800">
+    <div>
+      <div class="flex justify-between items-center mb-6">
+        <span class="text-sm font-semibold text-gray-400 uppercase tracking-wider">Menu Navigazione</span>
+        <button onclick="toggleDrawer()" class="p-1 text-gray-400 hover:text-white">
+          <i data-lucide="x" class="w-6 h-6"></i>
+        </button>
+      </div>
+      <nav class="space-y-1">
+        <a href="#" onclick="showSection('home')" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl bg-emerald-500/10 text-emerald-400 font-medium">
+          <i data-lucide="home" class="w-5 h-5"></i><span>Home</span>
+        </a>
+        <a href="#" onclick="scrollToProducts(); toggleDrawer();" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-gray-300 hover:bg-gray-800 transition">
+          <i data-lucide="package" class="w-5 h-5"></i><span>Prodotti</span>
+        </a>
+        <a href="#" onclick="toggleCart(); toggleDrawer();" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-gray-300 hover:bg-gray-800 transition">
+          <i data-lucide="shopping-bag" class="w-5 h-5"></i><span>Carrello</span>
+        </a>
+      </nav>
+    </div>
+    <div class="border-t border-gray-800 pt-4 text-xs text-center text-gray-500">
+      v1.33.0 • Boston George 420
+    </div>
+  </aside>
 
-def run_health_server():
-    port = int(os.environ.get("PORT", 8080))
-    server = HTTPServer(('0.0.0.0', port), HealthCheckHandler)
-    server.serve_forever()
+  <main class="p-4 space-y-6">
+    <div class="relative rounded-2xl overflow-hidden border border-gray-800 bg-gray-900 shadow-2xl">
+      <video class="w-full h-48 object-cover" autoplay loop muted playsinline src="https://files.catbox.moe/2a9rqy.mov">
+        <source src="https://files.catbox.moe/2a9rqy.mov">
+      </video>
+      <div class="absolute inset-0 bg-gradient-to-t from-[#121212] via-black/40 to-transparent"></div>
+      <div class="absolute bottom-3 left-4 right-4">
+        <h1 class="text-2xl font-black text-white tracking-wide">Boston George 420</h1>
+        <div class="flex items-center space-x-3 text-xs text-gray-300 mt-1">
+          <span class="flex items-center"><i data-lucide="package" class="w-3.5 h-3.5 mr-1 text-emerald-400"></i> <span id="stat-products">--</span> Prodotti</span>
+          <span class="flex items-center"><i data-lucide="grid" class="w-3.5 h-3.5 mr-1 text-blue-400"></i> 4 Categorie</span>
+          <span class="flex items-center text-amber-400">★ 5.0 (600+)</span>
+        </div>
+      </div>
+    </div>
 
-threading.Thread(target=run_health_server, daemon=True).start()
+    <div class="bg-gray-900/80 border border-gray-800 rounded-2xl p-4 space-y-2 text-sm text-gray-300">
+      <p class="font-medium text-white">👋 Benvenuto nello shop di Boston George 420!</p>
+      <p class="text-xs text-gray-400">📦 Tutti i prodotti in pronta consegna con spedizioni riservate e sicure.</p>
+    </div>
 
-# --- HELPER SUPABASE REST API ---
-def get_headers():
-    return {
-        "apikey": SUPABASE_KEY,
-        "Authorization": f"Bearer {SUPABASE_KEY}",
-        "Content-Type": "application/json",
-        "Prefer": "return=representation"
+    <div class="space-y-3" id="products-section">
+      <div class="flex justify-between items-center">
+        <h2 class="text-lg font-bold text-white tracking-wide">Catalogo Prodotti</h2>
+      </div>
+      <div class="flex space-x-2 overflow-x-auto hide-scrollbar pb-1">
+        <button onclick="filterCategory('ALL')" class="cat-btn px-4 py-2 rounded-xl bg-emerald-500 text-black text-xs font-bold whitespace-nowrap">Tutti</button>
+        <button onclick="filterCategory('🇮🇹 Italia')" class="cat-btn px-4 py-2 rounded-xl bg-gray-800 text-gray-300 text-xs font-medium whitespace-nowrap">🇮🇹 Italia</button>
+        <button onclick="filterCategory('🇪🇸 Spagna')" class="cat-btn px-4 py-2 rounded-xl bg-gray-800 text-gray-300 text-xs font-medium whitespace-nowrap">🇪🇸 Spagna</button>
+        <button onclick="filterCategory('🇳🇱 Olanda')" class="cat-btn px-4 py-2 rounded-xl bg-gray-800 text-gray-300 text-xs font-medium whitespace-nowrap">🇳🇱 Olanda</button>
+        <button onclick="filterCategory('🇺🇸 USA')" class="cat-btn px-4 py-2 rounded-xl bg-gray-800 text-gray-300 text-xs font-medium whitespace-nowrap">🇺🇸 USA</button>
+      </div>
+    </div>
+
+    <div id="products-grid" class="grid grid-cols-1 gap-4">
+      <div class="text-center py-8 text-gray-500 text-sm">Caricamento prodotti in corso...</div>
+    </div>
+  </main>
+
+  <script>
+    lucide.createIcons();
+    let allProducts = [];
+    let cart = [];
+
+    function toggleDrawer() {
+      const drawer = document.getElementById('drawer');
+      const overlay = document.getElementById('drawer-overlay');
+      drawer.classList.toggle('translate-x-full');
+      overlay.classList.toggle('hidden');
     }
 
-def db_register_user(user_id, username):
-    if not SUPABASE_URL or not SUPABASE_KEY:
-        return
-    url = f"{SUPABASE_URL}/rest/v1/users"
-    headers = get_headers()
-    headers["Prefer"] = "resolution=merge-duplicates"
-    data = {"telegram_id": user_id, "username": username or "Anonimo", "points": 50}
-    try:
-        requests.post(url, headers=headers, json=data)
-    except Exception as e:
-        print(f"Errore registrazione: {e}")
-
-def db_add_product(product_data):
-    url = f"{SUPABASE_URL}/rest/v1/products"
-    try:
-        r = requests.post(url, headers=get_headers(), json=product_data)
-        return r.status_code in [200, 201]
-    except Exception as e:
-        print(f"Errore add_product: {e}")
-        return False
-
-def db_get_products():
-    url = f"{SUPABASE_URL}/rest/v1/products?select=*&order=created_at.desc"
-    try:
-        r = requests.get(url, headers=get_headers())
-        return r.json() if r.status_code == 200 else []
-    except Exception:
-        return []
-
-def db_toggle_product(prod_id, current_status):
-    url = f"{SUPABASE_URL}/rest/v1/products?id=eq.{prod_id}"
-    try:
-        r = requests.patch(url, headers=get_headers(), json={"in_showcase": not current_status})
-        return r.status_code in [200, 204]
-    except Exception:
-        return False
-
-def db_delete_product(prod_id):
-    url = f"{SUPABASE_URL}/rest/v1/products?id=eq.{prod_id}"
-    try:
-        r = requests.delete(url, headers=get_headers())
-        return r.status_code in [200, 204]
-    except Exception:
-        return False
-
-def db_save_order(user_id, username, cart, total):
-    url = f"{SUPABASE_URL}/rest/v1/orders"
-    data = {
-        "user_id": user_id,
-        "username": username or "Anonimo",
-        "items": cart,
-        "total_price": total,
-        "status": "PENDING"
+    function scrollToProducts() {
+      document.getElementById('products-section').scrollIntoView({ behavior: 'smooth' });
     }
-    try:
-        r = requests.post(url, headers=get_headers(), json=data)
-        if r.status_code in [200, 201]:
-            res = r.json()
-            return res[0]["id"] if isinstance(res, list) and len(res) > 0 else 999
-    except Exception as e:
-        print(f"Errore salvataggio ordine: {e}")
-    return 999
 
-def db_update_order_status(order_id, status, tracking=""):
-    url = f"{SUPABASE_URL}/rest/v1/orders?id=eq.{order_id}"
-    payload = {"status": status}
-    if tracking:
-        payload["tracking_code"] = tracking
-    try:
-        r = requests.patch(url, headers=get_headers(), json=payload)
-        return r.status_code in [200, 204]
-    except Exception:
-        return False
+    async function loadProducts() {
+      try {
+        const { data, error } = await supabase.from('products').select('*').eq('in_showcase', true);
+        if (error) throw error;
+        allProducts = data || [];
+        document.getElementById('stat-products').innerText = allProducts.length;
+        renderProducts(allProducts);
+      } catch (err) {
+        console.error("Errore Supabase:", err);
+        document.getElementById('products-grid').innerHTML = `
+          <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center text-xs text-gray-400">
+            Nessun prodotto presente. Aggiungine uno usando <b>/admin</b> sul Bot Telegram!
+          </div>`;
+      }
+    }
 
-def db_update_user_points(target_id, points_delta):
-    url = f"{SUPABASE_URL}/rest/v1/users?telegram_id=eq.{target_id}"
-    try:
-        r = requests.get(url, headers=get_headers())
-        if r.status_code == 200 and len(r.json()) > 0:
-            current_p = r.json()[0].get("points", 0)
-            new_p = max(0, current_p + points_delta)
-            requests.patch(url, headers=get_headers(), json={"points": new_p})
-            return True, new_p
-    except Exception as e:
-        print(f"Errore punti: {e}")
-    return False, 0
+    function renderProducts(products) {
+      const container = document.getElementById('products-grid');
+      if (products.length === 0) {
+        container.innerHTML = `<div class="text-center py-6 text-gray-500 text-xs">Nessun prodotto in questa categoria.</div>`;
+        return;
+      }
 
-# --- MENU TASTI INLINE ADMIN ---
-def get_admin_main_keyboard():
-    markup = types.InlineKeyboardMarkup(row_width=1)
-    markup.add(
-        types.InlineKeyboardButton("📦 Gestione Prodotti & Media", callback_data="m_prod"),
-        types.InlineKeyboardButton("🛒 Gestione Ordini", callback_data="m_ord"),
-        types.InlineKeyboardButton("🏆 Punti & Trofei Utenti", callback_data="m_pts"),
-        types.InlineKeyboardButton("🎨 Grafica & Info Shop", callback_data="m_cfg")
-    )
-    return markup
+      container.innerHTML = products.map(p => `
+        <div class="bg-gray-900/90 border border-gray-800 rounded-2xl overflow-hidden shadow-lg">
+          ${p.media_type === 'video' ? `
+            <video class="w-full h-48 object-cover" autoplay loop muted playsinline src="${p.media_url}"></video>
+          ` : `
+            <img class="w-full h-48 object-cover" src="${p.media_url || 'https://images.unsplash.com/photo-1527661591475-527312dd65f5'}" />
+          `}
+          <div class="p-4 space-y-3">
+            <div class="flex justify-between items-start">
+              <div>
+                <span class="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">${p.category}</span>
+                <h3 class="font-bold text-base text-white">${p.name}</h3>
+              </div>
+            </div>
+            <p class="text-xs text-gray-400 line-clamp-2">${p.description || ''}</p>
+            
+            <div class="space-y-1.5 border-t border-gray-800 pt-3">
+              ${(p.price_options || []).map(opt => `
+                <div class="flex justify-between items-center bg-gray-800/50 px-3 py-2 rounded-lg text-xs">
+                  <span class="font-medium text-gray-200">${opt.qty}</span>
+                  <div class="flex items-center space-x-3">
+                    <span class="font-bold text-emerald-400">€${opt.price}</span>
+                    <button onclick="addToCart('${p.name}', '${opt.qty}', ${opt.price})" class="bg-emerald-500 text-black px-2.5 py-1 rounded-md font-bold text-[11px] hover:bg-emerald-400">+ Aggiungi</button>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `).join('');
+      lucide.createIcons();
+    }
 
-def get_admin_prod_keyboard():
-    markup = types.InlineKeyboardMarkup(row_width=1)
-    markup.add(
-        types.InlineKeyboardButton("➕ Aggiungi Prodotto", callback_data="p_add"),
-        types.InlineKeyboardButton("📋 Lista / Modifica / Elimina", callback_data="p_list"),
-        types.InlineKeyboardButton("🔙 Torna al Menu Principale", callback_data="m_main")
-    )
-    return markup
+    function filterCategory(cat) {
+      document.querySelectorAll('.cat-btn').forEach(btn => {
+        btn.classList.remove('bg-emerald-500', 'text-black');
+        btn.classList.add('bg-gray-800', 'text-gray-300');
+      });
+      event.target.classList.remove('bg-gray-800', 'text-gray-300');
+      event.target.classList.add('bg-emerald-500', 'text-black');
 
-# --- COMANDI USER ---
-@bot.message_handler(commands=['start'])
-def send_welcome(message):
-    user_id = message.chat.id
-    username = message.from_user.username
-    db_register_user(user_id, username)
-    
-    welcome_text = (
-        "👋 **Benvenuti nello shop di Boston George 420!**\n\n"
-        "Qui troverete tutti i prodotti ideali per voi o per il vostro business.\n\n"
-        "📦 Tutti i PRODOTTI sono in pronta consegna\n"
-        "🤝 Consegna a mano disponibile\n\n"
-        "🚚 **Spedizioni da:**\n"
-        "🇮🇹 Italia | 🇪🇸 Spagna | 🇳🇱 Olanda | 🇺🇸 USA\n\n"
-        "🛍️ Cliccate in basso per aprire la vetrina!"
-    )
-    
-    markup = types.InlineKeyboardMarkup()
-    if WEB_APP_URL:
-        btn = types.InlineKeyboardButton("🛍 Apri la vetrina", web_app=types.WebAppInfo(WEB_APP_URL.strip()))
-        markup.add(btn)
-    
-    bot.send_message(user_id, welcome_text, parse_mode='Markdown', reply_markup=markup)
+      if (cat === 'ALL') renderProducts(allProducts);
+      else renderProducts(allProducts.filter(p => p.category === cat));
+    }
 
-# --- COMANDO ADMIN ---
-@bot.message_handler(commands=['admin'])
-def admin_panel(message):
-    if message.chat.id != ADMIN_ID:
-        bot.reply_to(message, "⛔️ Accesso negato. Pannello riservato all'Amministratore.")
-        return
-    
-    bot.send_message(
-        message.chat.id,
-        "⚙️ **PANNELLO GESTIONALE AMMINISTRATORE**\n\nScegli la sezione da gestire:",
-        parse_mode='Markdown',
-        reply_markup=get_admin_main_keyboard()
-    )
+    function addToCart(name, qty, price) {
+      cart.push({ name, qty, price });
+      const badge = document.getElementById('cart-badge');
+      badge.innerText = cart.length;
+      badge.classList.remove('hidden');
+      if (tg) tg.HapticFeedback?.impactOccurred('light');
+    }
 
-# --- NOTIFICA ACQUISTO DA WEB APP ---
-@bot.message_handler(content_types=['web_app_data'])
-def handle_web_app_data(message):
-    try:
-        data = json.loads(message.web_app_data.data)
-        cart = data.get("cart", [])
-        total = data.get("total", 0)
-        user_id = message.chat.id
-        username = message.from_user.username or "Anonimo"
-
-        order_id = db_save_order(user_id, username, cart, total)
-
-        # Conferma all'utente
-        bot.send_message(
-            user_id,
-            f"🎉 **Ordine #{order_id} Inviato con Successo!**\n\n"
-            f"Totale: **€{total}**\n"
-            "Un operatore prenderà in carico la tua richiesta a breve."
-        )
-
-        # Notifica istantanea all’Admin
-        items_text = "\n".join([f"• {i['name']} ({i['qty']}) - €{i['price']}" for i in cart])
-        admin_msg = (
-            f"🚨 **NUOVO ORDINE RICEVUTO! #{order_id}**\n\n"
-            f"👤 Utente: @{username} (`{user_id}`)\n"
-            f"📦 Prodotti:\n{items_text}\n\n"
-            f"💰 **Totale: €{total}**"
-        )
-        
-        markup = types.InlineKeyboardMarkup(row_width=2)
-        markup.add(
-            types.InlineKeyboardButton("✅ Accetta", callback_data=f"ord_acc_{order_id}_{user_id}"),
-            types.InlineKeyboardButton("❌ Annulla", callback_data=f"ord_cnc_{order_id}_{user_id}"),
-            types.InlineKeyboardButton("🚚 Invia Tracking", callback_data=f"ord_trk_{order_id}_{user_id}")
-        )
-        bot.send_message(ADMIN_ID, admin_msg, parse_mode='Markdown', reply_markup=markup)
-
-    except Exception as e:
-        print(f"Errore web_app_data: {e}")
-
-# --- CALLBACK QUERY HANDLER ---
-@bot.callback_query_handler(func=lambda call: True)
-def handle_callbacks(call):
-    user_id = call.message.chat.id
-    if user_id != ADMIN_ID:
-        return
-
-    data = call.data
-
-    # --- NAVIGAZIONE MENU PRINCIPALI ---
-    if data == "m_main":
-        bot.edit_message_text("⚙️ **PANNELLO GESTIONALE AMMINISTRATORE**", user_id, call.message.message_id, parse_mode='Markdown', reply_markup=get_admin_main_keyboard())
-
-    elif data == "m_prod":
-        bot.edit_message_text("📦 **GESTIONE PRODOTTI & MEDIA**\n\nCosa desideri fare?", user_id, call.message.message_id, parse_mode='Markdown', reply_markup=get_admin_prod_keyboard())
-
-    elif data == "m_ord":
-        bot.edit_message_text("🛒 **GESTIONE ORDINI**\n\nGli ordini ricevuti dalla Web App compaiono direttamente qui in chat con i tasti di accettazione e invio tracking.", user_id, call.message.message_id, parse_mode='Markdown', reply_markup=get_admin_main_keyboard())
-
-    elif data == "m_pts":
-        bot.send_message(user_id, "🏆 **GESTIONE PUNTI UTENTE**\n\nPer assegnare o rimuovere punti invia un messaggio con questo formato:\n`/punti ID_UTENTE QUANTITA`\n*(Esempio: `/punti 12345678 100`)*", parse_mode='Markdown')
-
-    elif data == "m_cfg":
-        bot.send_message(user_id, "🎨 **GRAFICA & INFO SHOP**\n\nPuoi personalizzare il video del banner e il logo sostituendo i link in `index.html` su GitHub.", parse_mode='Markdown')
-
-    # --- FLUSSO AGGIUNTA PRODOTTO ---
-    elif data == "p_add":
-        markup = types.InlineKeyboardMarkup(row_width=2)
-        cats = ["🇮🇹 Italia", "🇪🇸 Spagna", "🇳🇱 Olanda", "🇺🇸 USA"]
-        btns = [types.InlineKeyboardButton(c, callback_data=f"addcat_{c}") for c in cats]
-        markup.add(*btns)
-        bot.edit_message_text("Seleziona la **categoria** per il nuovo prodotto:", user_id, call.message.message_id, parse_mode='Markdown', reply_markup=markup)
-
-    elif data.startswith("addcat_"):
-        cat = data.replace("addcat_", "")
-        user_states[user_id] = {"category": cat, "step": "WAITING_MEDIA"}
-        bot.edit_message_text(f"Categoria scelta: **{cat}**\n\n📸 Ora invia la **Foto o Video** del prodotto.", user_id, call.message.message_id, parse_mode='Markdown')
-
-    # --- LISTA / MODIFICA / ELIMINA PRODOTTI ---
-    elif data == "p_list":
-        prods = db_get_products()
-        if not prods:
-            bot.send_message(user_id, "📭 Nessun prodotto presente nel database.")
-            return
-
-        for p in prods:
-            status_str = "🟢 In Vetrina" if p.get("in_showcase") else "🔴 Nascosto"
-            msg = f"📦 **{p.get('name')}**\n🏷 Categoria: {p.get('category')}\n👁 Stato: {status_str}"
-            markup = types.InlineKeyboardMarkup(row_width=2)
-            markup.add(
-                types.InlineKeyboardButton("👁️ Attiva/Disattiva", callback_data=f"tog_{p['id']}_{p.get('in_showcase')}"),
-                types.InlineKeyboardButton("🗑️ Elimina", callback_data=f"del_{p['id']}")
-            )
-            bot.send_message(user_id, msg, parse_mode='Markdown', reply_markup=markup)
-
-    elif data.startswith("tog_"):
-        parts = data.split("_")
-        p_id, curr_st = parts[1], parts[2] == 'True'
-        if db_toggle_product(p_id, curr_st):
-            bot.answer_callback_query(call.id, "✅ Stato aggiornato!")
-            bot.delete_message(user_id, call.message.message_id)
-        else:
-            bot.answer_callback_query(call.id, "❌ Errore aggiornamento.")
-
-    elif data.startswith("del_"):
-        p_id = data.split("_")[1]
-        if db_delete_product(p_id):
-            bot.answer_callback_query(call.id, "🗑️ Prodotto eliminato!")
-            bot.delete_message(user_id, call.message.message_id)
-        else:
-            bot.answer_callback_query(call.id, "❌ Errore eliminazione.")
-
-    # --- GESTIONE AZIONI ORDINI ---
-    elif data.startswith("ord_acc_"):
-        _, _, o_id, u_id = data.split("_")
-        db_update_order_status(o_id, "ACCEPTED")
-        bot.send_message(int(u_id), f"✅ **Il tuo ordine #{o_id} è stato confermato!**\nInizieremo subito la preparazione.")
-        bot.answer_callback_query(call.id, "Ordine accettato")
-
-    elif data.startswith("ord_cnc_"):
-        _, _, o_id, u_id = data.split("_")
-        db_update_order_status(o_id, "CANCELLED")
-        bot.send_message(int(u_id), f"❌ **Il tuo ordine #{o_id} è stato annullato.** Contatta il supporto per chiarimenti.")
-        bot.answer_callback_query(call.id, "Ordine annullato")
-
-    elif data.startswith("ord_trk_"):
-        _, _, o_id, u_id = data.split("_")
-        user_states[user_id] = {"step": "WAITING_TRACKING", "target_order": o_id, "target_user": u_id}
-        bot.send_message(user_id, f"🚚 Invia ora il **Codice di Tracking** per l'Ordine #{o_id}:")
-
-# --- MULTI-STEP WIZARD (INPUT TESTUALI E MEDIA) ---
-@bot.message_handler(content_types=['photo', 'video'])
-def handle_media(message):
-    user_id = message.chat.id
-    if user_id != ADMIN_ID or user_states.get(user_id, {}).get("step") != "WAITING_MEDIA":
-        return
-
-    if message.photo:
-        file_id = message.photo[-1].file_id
-        media_type = 'image'
-    else:
-        file_id = message.video.file_id
-        media_type = 'video'
-
-    file_info = bot.get_file(file_id)
-    file_url = f"https://api.telegram.org/file/bot{TELEGRAM_TOKEN}/{file_info.file_path}"
-
-    user_states[user_id]["media_url"] = file_url
-    user_states[user_id]["media_type"] = media_type
-    user_states[user_id]["step"] = "WAITING_NAME"
-
-    bot.reply_to(message, "✅ Media caricato!\n\n📝 Ora invia il **Nome** del prodotto:")
-
-@bot.message_handler(func=lambda m: m.chat.id == ADMIN_ID)
-def handle_admin_text(message):
-    user_id = message.chat.id
-    state = user_states.get(user_id, {})
-    step = state.get("step")
-
-    # Comando rapido Punti Admin: /punti 12345678 100
-    if message.text.startswith("/punti"):
-        try:
-            parts = message.text.split(" ")
-            target_id = int(parts[1])
-            delta = int(parts[2])
-            ok, new_total = db_update_user_points(target_id, delta)
-            if ok:
-                bot.reply_to(message, f"🏆 **Punti aggiornati!**\nUtente `{target_id}`: ora ha **{new_total} punti**.")
-                bot.send_message(target_id, f"🎉 Hai ricevuto **{delta} punti**! Il tuo totale è ora: **{new_total} punti**.")
-            else:
-                bot.reply_to(message, "❌ Utente non trovato nel database.")
-        except Exception:
-            bot.reply_to(message, "❌ Formato errato. Usa: `/punti ID_UTENTE QUANTITA`")
-        return
-
-    if step == "WAITING_NAME":
-        user_states[user_id]["name"] = message.text
-        user_states[user_id]["step"] = "WAITING_PRICES"
-        bot.reply_to(
-            message,
-            "📝 Nome registrato!\n\n💰 Invia i **prezzi/quantità** nel seguente formato:\n`10g - 50, 25g - 100, 50g - 180`",
-            parse_mode='Markdown'
-        )
-
-    elif step == "WAITING_PRICES":
-        try:
-            raw = message.text.split(",")
-            prices = []
-            for r in raw:
-                p = r.split("-")
-                prices.append({"qty": p[0].strip(), "price": float(p[1].strip().replace("€", ""))})
-        except Exception:
-            bot.reply_to(message, "❌ Formato non valido. Esempio corretto: `10g - 50, 25g - 100`")
-            return
-
-        st = user_states[user_id]
-        prod_payload = {
-            "name": st["name"],
-            "category": st["category"],
-            "media_url": st["media_url"],
-            "media_type": st["media_type"],
-            "price_options": prices,
-            "description": f"Prodotto in pronta consegna da {st['category']}",
-            "in_showcase": True
+    function toggleCart() {
+      if (cart.length === 0) {
+        alert("Il carrello è vuoto!");
+        return;
+      }
+      let total = cart.reduce((sum, item) => sum + item.price, 0);
+      let summary = cart.map(i => `• ${i.name} (${i.qty}) - €${i.price}`).join('\n');
+      if (confirm(`Riepilogo Carrello:\n\n${summary}\n\nTotale: €${total}\n\nVuoi confermare l'ordine?`)) {
+        if (tg) {
+          tg.sendData(JSON.stringify({ cart, total }));
+          tg.close();
+        } else {
+          alert("Ordine inviato con successo!");
+          cart = [];
+          document.getElementById('cart-badge').classList.add('hidden');
         }
+      }
+    }
 
-        if db_add_product(prod_payload):
-            bot.reply_to(message, f"🎉 **PRODOTTO PUBBLICATO IN VETRINA!**\n\n📦 **{st['name']}**\n🏷️ Categoria: {st['category']}")
-        else:
-            bot.reply_to(message, "❌ Errore durante la pubblicazione su Supabase.")
-
-        user_states.pop(user_id, None)
-
-    elif step == "WAITING_TRACKING":
-        tracking_code = message.text.strip()
-        o_id = state.get("target_order")
-        u_id = state.get("target_user")
-
-        db_update_order_status(o_id, "SHIPPED", tracking_code)
-        bot.send_message(
-            int(u_id),
-            f"🚚 **IL TUO ORDINE #{o_id} È STATO SPEDITO!**\n\nCodice di Tracking: `{tracking_code}`",
-            parse_mode='Markdown'
-        )
-        bot.reply_to(message, f"✅ Tracking per Ordine #{o_id} inviato all'acquirente!")
-        user_states.pop(user_id, None)
-
-# --- AVVIO BOT ---
-print("🤖 Avvio Bot Admin in corso...")
-bot.remove_webhook()
-bot.infinity_polling(skip_pending=True)
+    loadProducts();
+  </script>
+</body>
+</html>
