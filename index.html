@@ -2,103 +2,281 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>BostonGeorge Shop</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>BostonGeorgeShop</title>
+  <!-- Telegram Web App SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Supabase JS SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
   <style>
     body {
-      background-color: #0f172a;
-      color: #f8fafc;
+      background-color: #121212;
+      color: #f3f4f6;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      user-select: none;
+    }
+    .drawer {
+      transition: transform 0.3s ease-in-out;
+    }
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
     }
   </style>
 </head>
-<body class="pb-20">
+<body class="pb-24">
 
-  <!-- Header Vetrina -->
-  <header class="bg-slate-900 border-b border-slate-800 p-4 sticky top-0 z-50 flex justify-between items-center shadow-lg">
-    <div>
-      <h1 class="text-xl font-bold text-amber-500 tracking-wide">BOSTON GEORGE</h1>
-      <p class="text-xs text-slate-400">Official Telegram Vetrina</p>
+  <!-- CONFIGURAZIONE SUPABASE -->
+  <script>
+    const SUPABASE_URL = "https://hvjzhgixdgozpjqjeipf.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2anpoZ2l4ZGdvenBqcWplaXBmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYwOTg0ODcsImV4cCI6MjEwMTY3NDQ4N30.WsXI7PtlLM4xqffPyWcjZqxrC0nHGmjurIT0cSVNy6U";
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const tg = window.Telegram?.WebApp;
+    if (tg) tg.expand();
+  </script>
+
+  <!-- NAVBAR SUPERIORE -->
+  <header class="sticky top-0 z-30 bg-[#1e1e1e]/90 backdrop-blur-md px-4 py-3 flex justify-between items-center border-b border-gray-800">
+    <div class="flex items-center space-x-3">
+      <div class="w-9 h-9 rounded-full bg-cover bg-center border border-emerald-500" style="background-image: url('https://i.imgur.com/8N61o1a.png');"></div>
+      <span class="font-bold text-lg tracking-wide">BostonGeorgeShop</span>
     </div>
-    <div class="flex items-center gap-2">
-      <span class="bg-emerald-500/20 text-emerald-400 text-xs px-2.5 py-1 rounded-full border border-emerald-500/30 font-medium">
-        <i class="fa-solid fa-circle text-[8px] animate-pulse mr-1"></i> Online
-      </span>
+    <div class="flex items-center space-x-2">
+      <!-- Pulsante Carrello -->
+      <button onclick="toggleCart()" class="relative p-2 rounded-lg bg-gray-800 hover:bg-gray-700">
+        <i data-lucide="shopping-cart" class="w-5 h-5 text-gray-200"></i>
+        <span id="cart-badge" class="absolute -top-1 -right-1 bg-emerald-500 text-black text-xs font-bold w-4 h-4 rounded-full flex items-center justify-center hidden">0</span>
+      </button>
+      <!-- Pulsante Menu Drawer -->
+      <button onclick="toggleDrawer()" class="p-2 rounded-lg bg-gray-800 hover:bg-gray-700">
+        <i data-lucide="menu" class="w-6 h-6 text-gray-200"></i>
+      </button>
     </div>
   </header>
 
-  <!-- Banner Info Spedizioni -->
-  <div class="m-4 p-3 bg-slate-800/80 rounded-xl border border-slate-700 text-xs space-y-1.5 shadow">
-    <p class="flex items-center gap-2 text-slate-300">
-      <i class="fa-solid fa-box text-amber-400"></i> Tutti i PRODOTTI sono in pronta consegna
-    </p>
-    <p class="flex items-center gap-2 text-slate-300">
-      <i class="fa-solid fa-truck-fast text-blue-400"></i> Spedizioni veloci: 🇮🇹 Italia | 🇪🇸 Spagna | 🇨🇿 Rep. Ceca
-    </p>
-  </div>
+  <!-- MENU LATERALE (DRAWER) -->
+  <div id="drawer-overlay" onclick="toggleDrawer()" class="fixed inset-0 bg-black/60 z-40 hidden backdrop-blur-sm"></div>
+  <aside id="drawer" class="fixed top-0 right-0 w-72 h-full bg-[#181818] z-50 transform translate-x-full drawer p-5 flex flex-col justify-between border-l border-gray-800">
+    <div>
+      <div class="flex justify-between items-center mb-6">
+        <span class="text-sm font-semibold text-gray-400 uppercase tracking-wider">Menu Navigazione</span>
+        <button onclick="toggleDrawer()" class="p-1 text-gray-400 hover:text-white">
+          <i data-lucide="x" class="w-6 h-6"></i>
+        </button>
+      </div>
+      <nav class="space-y-1">
+        <a href="#" onclick="showSection('home')" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl bg-emerald-500/10 text-emerald-400 font-medium">
+          <i data-lucide="home" class="w-5 h-5"></i><span>Home</span>
+        </a>
+        <a href="#" onclick="scrollToProducts(); toggleDrawer();" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-gray-300 hover:bg-gray-800 transition">
+          <i data-lucide="package" class="w-5 h-5"></i><span>Prodotti</span>
+        </a>
+        <a href="#" onclick="toggleCart(); toggleDrawer();" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-gray-300 hover:bg-gray-800 transition">
+          <i data-lucide="shopping-bag" class="w-5 h-5"></i><span>Carrello</span>
+        </a>
+        <a href="#" onclick="alert('In arrivo!'); toggleDrawer();" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-gray-300 hover:bg-gray-800 transition">
+          <i data-lucide="zap" class="w-5 h-5 text-amber-400"></i><span>I miei punti</span>
+        </a>
+        <a href="#" onclick="alert('In arrivo!'); toggleDrawer();" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-gray-300 hover:bg-gray-800 transition">
+          <i data-lucide="truck" class="w-5 h-5"></i><span>Tracking Ordini</span>
+        </a>
+        <a href="#" onclick="alert('Supporto 24/7 attivo'); toggleDrawer();" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-gray-300 hover:bg-gray-800 transition">
+          <i data-lucide="headphones" class="w-5 h-5"></i><span>Contatti</span>
+        </a>
+      </nav>
+    </div>
+    <div class="border-t border-gray-800 pt-4 text-xs text-center text-gray-500">
+      v1.33.0 • BostonGeorgeShop
+    </div>
+  </aside>
 
-  <!-- Griglia Prodotti -->
-  <main class="px-4">
-    <h2 class="text-xs font-semibold uppercase text-slate-400 tracking-wider mb-3">Prodotti in Vetrina</h2>
-    
-    <div id="products-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      
-      <!-- Scheda Prodotto 1 -->
-      <div class="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden shadow-xl flex flex-col justify-between">
-        <div class="relative">
-          <img src="https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=600" alt="Prodotto" class="w-full h-48 object-cover">
-          <span class="absolute top-3 right-3 bg-amber-500 text-slate-950 font-bold text-xs px-2.5 py-1 rounded-lg shadow">
-            Pronta Consegna
-          </span>
-        </div>
-        
-        <div class="p-4 flex-1 flex flex-col justify-between">
-          <div>
-            <div class="flex justify-between items-start mb-2">
-              <h3 class="font-bold text-lg text-white">iPhone 15 Pro Max</h3>
-              <span class="text-amber-400 font-extrabold text-lg">€ 999.00</span>
-            </div>
-            <p class="text-slate-400 text-xs line-clamp-2 mb-4">
-              Nuovo sigillato, spedizione tracciata e assicurata.
-            </p>
-          </div>
+  <!-- CONTENUTO PRINCIPALE -->
+  <main class="p-4 space-y-6">
 
-          <div class="pt-3 border-t border-slate-700/60 flex items-center justify-between">
-            <span class="text-[11px] text-slate-400 flex items-center gap-1">
-              <i class="fa-solid fa-location-dot text-slate-500"></i> Spedito da: 🇮🇹
-            </span>
-            <button onclick="orderProduct('iPhone 15 Pro Max', '999.00')" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs px-4 py-2.5 rounded-xl transition flex items-center gap-1.5 active:scale-95">
-              <i class="fa-solid fa-cart-shopping"></i> Ordina Ora
-            </button>
-          </div>
+    <!-- HERO / BANNER VIDEO -->
+    <div class="relative rounded-2xl overflow-hidden border border-gray-800 bg-gray-900 shadow-2xl">
+      <video class="w-full h-48 object-cover" autoplay loop muted playsinline>
+        <source src="https://assets.mixkit.co/videos/preview/mixkit-smoke-background-4k-42721-large.mp4" type="video/mp4">
+      </video>
+      <div class="absolute inset-0 bg-gradient-to-t from-[#121212] via-black/40 to-transparent"></div>
+      <div class="absolute bottom-3 left-4 right-4">
+        <h1 class="text-2xl font-black text-white tracking-wide">BostonGeorgeShop</h1>
+        <div class="flex items-center space-x-3 text-xs text-gray-300 mt-1">
+          <span class="flex items-center"><i data-lucide="package" class="w-3.5 h-3.5 mr-1 text-emerald-400"></i> <span id="stat-products">--</span> Prodotti</span>
+          <span class="flex items-center"><i data-lucide="grid" class="w-3.5 h-3.5 mr-1 text-blue-400"></i> 4 Categorie</span>
+          <span class="flex items-center text-amber-400">★ 5.0 (600+)</span>
         </div>
       </div>
-
     </div>
+
+    <!-- MESSAGGIO INFORMATIVO -->
+    <div class="bg-gray-900/80 border border-gray-800 rounded-2xl p-4 space-y-2 text-sm text-gray-300">
+      <p class="font-medium text-white">👋 Benvenuto nello shop di BostonGeorge!</p>
+      <p class="text-xs text-gray-400">📦 Tutti i prodotti in pronta consegna con spedizioni riservate e sicure.</p>
+      <div class="flex flex-wrap gap-2 pt-1 text-xs">
+        <span class="bg-gray-800 px-2 py-1 rounded-md">🇮🇹 Italia</span>
+        <span class="bg-gray-800 px-2 py-1 rounded-md">🇪🇸 Spagna</span>
+        <span class="bg-gray-800 px-2 py-1 rounded-md">🇳🇱 Olanda</span>
+        <span class="bg-gray-800 px-2 py-1 rounded-md">🇺🇸 USA</span>
+      </div>
+    </div>
+
+    <!-- PULSANTI AZIONE RAPIDA -->
+    <div class="grid grid-cols-1 gap-3">
+      <button onclick="scrollToProducts()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-black font-extrabold py-3.5 px-4 rounded-xl flex items-center justify-center space-x-2 shadow-lg shadow-emerald-500/20">
+        <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+        <span>Sfoglia i prodotti</span>
+      </button>
+      <button onclick="alert('In arrivo!')" class="w-full bg-gray-800/90 hover:bg-gray-800 text-amber-400 font-bold py-3 px-4 rounded-xl border border-amber-500/20 flex items-center justify-center space-x-2">
+        <i data-lucide="trophy" class="w-5 h-5"></i>
+        <span>I miei punti e trofei</span>
+      </button>
+    </div>
+
+    <!-- FILTRO CATEGORIE -->
+    <div class="space-y-3" id="products-section">
+      <div class="flex justify-between items-center">
+        <h2 class="text-lg font-bold text-white tracking-wide">Catalogo Prodotti</h2>
+      </div>
+      <div class="flex space-x-2 overflow-x-auto hide-scrollbar pb-1">
+        <button onclick="filterCategory('ALL')" class="cat-btn px-4 py-2 rounded-xl bg-emerald-500 text-black text-xs font-bold whitespace-nowrap">Tutti</button>
+        <button onclick="filterCategory('🇮🇹 Italia')" class="cat-btn px-4 py-2 rounded-xl bg-gray-800 text-gray-300 text-xs font-medium whitespace-nowrap">🇮🇹 Italia</button>
+        <button onclick="filterCategory('🇪🇸 Spagna')" class="cat-btn px-4 py-2 rounded-xl bg-gray-800 text-gray-300 text-xs font-medium whitespace-nowrap">🇪🇸 Spagna</button>
+        <button onclick="filterCategory('🇳🇱 Olanda')" class="cat-btn px-4 py-2 rounded-xl bg-gray-800 text-gray-300 text-xs font-medium whitespace-nowrap">🇳🇱 Olanda</button>
+        <button onclick="filterCategory('🇺🇸 USA')" class="cat-btn px-4 py-2 rounded-xl bg-gray-800 text-gray-300 text-xs font-medium whitespace-nowrap">🇺🇸 USA</button>
+      </div>
+    </div>
+
+    <!-- GRIGLIA PRODOTTI DINAMICI DA SUPABASE -->
+    <div id="products-grid" class="grid grid-cols-1 gap-4">
+      <div class="text-center py-8 text-gray-500 text-sm">Caricamento prodotti in corso...</div>
+    </div>
+
   </main>
 
-  <!-- Script Telegram WebApp Integration -->
+  <!-- LOGICA JAVASCRIPT DINAMICA -->
   <script>
-    const tg = window.Telegram ? window.Telegram.WebApp : null;
-    if (tg) {
-      tg.expand();
-      tg.ready();
+    lucide.createIcons();
+    let allProducts = [];
+    let cart = [];
+
+    function toggleDrawer() {
+      const drawer = document.getElementById('drawer');
+      const overlay = document.getElementById('drawer-overlay');
+      drawer.classList.toggle('translate-x-full');
+      overlay.classList.toggle('hidden');
     }
 
-    function orderProduct(title, price) {
-      if (tg) {
-        tg.sendData(JSON.stringify({
-          action: "buy",
-          title: title,
-          price: price
-        }));
-      } else {
-        alert(`Ordine richiesto per: ${title} (€${price})`);
+    function scrollToProducts() {
+      document.getElementById('products-section').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Carica prodotti da Supabase
+    async function loadProducts() {
+      try {
+        const { data, error } = await supabase.from('products').select('*').eq('in_showcase', true);
+        if (error) throw error;
+        allProducts = data || [];
+        document.getElementById('stat-products').innerText = allProducts.length;
+        renderProducts(allProducts);
+      } catch (err) {
+        console.error("Errore Supabase:", err);
+        document.getElementById('products-grid').innerHTML = `
+          <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center text-xs text-gray-400">
+            Nessun prodotto presente. Aggiungine uno usando <b>/admin</b> sul Bot Telegram!
+          </div>`;
       }
     }
+
+    function renderProducts(products) {
+      const container = document.getElementById('products-grid');
+      if (products.length === 0) {
+        container.innerHTML = `<div class="text-center py-6 text-gray-500 text-xs">Nessun prodotto in questa categoria.</div>`;
+        return;
+      }
+
+      container.innerHTML = products.map(p => `
+        <div class="bg-gray-900/90 border border-gray-800 rounded-2xl overflow-hidden shadow-lg">
+          ${p.media_type === 'video' ? `
+            <video class="w-full h-48 object-cover" autoplay loop muted playsinline src="${p.media_url}"></video>
+          ` : `
+            <img class="w-full h-48 object-cover" src="${p.media_url || 'https://images.unsplash.com/photo-1527661591475-527312dd65f5'}" />
+          `}
+          <div class="p-4 space-y-3">
+            <div class="flex justify-between items-start">
+              <div>
+                <span class="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">${p.category}</span>
+                <h3 class="font-bold text-base text-white">${p.name}</h3>
+              </div>
+            </div>
+            <p class="text-xs text-gray-400 line-clamp-2">${p.description || ''}</p>
+            
+            <!-- OPZIONI DI PREZZO -->
+            <div class="space-y-1.5 border-t border-gray-800 pt-3">
+              ${(p.price_options || []).map(opt => `
+                <div class="flex justify-between items-center bg-gray-800/50 px-3 py-2 rounded-lg text-xs">
+                  <span class="font-medium text-gray-200">${opt.qty}</span>
+                  <div class="flex items-center space-x-3">
+                    <span class="font-bold text-emerald-400">€${opt.price}</span>
+                    <button onclick="addToCart('${p.name}', '${opt.qty}', ${opt.price})" class="bg-emerald-500 text-black px-2.5 py-1 rounded-md font-bold text-[11px] hover:bg-emerald-400">+ Aggiungi</button>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    function filterCategory(cat) {
+      document.querySelectorAll('.cat-btn').forEach(btn => {
+        btn.classList.remove('bg-emerald-500', 'text-black');
+        btn.classList.add('bg-gray-800', 'text-gray-300');
+      });
+      event.target.classList.remove('bg-gray-800', 'text-gray-300');
+      event.target.classList.add('bg-emerald-500', 'text-black');
+
+      if (cat === 'ALL') renderProducts(allProducts);
+      else renderProducts(allProducts.filter(p => p.category === cat));
+    }
+
+    function addToCart(name, qty, price) {
+      cart.push({ name, qty, price });
+      const badge = document.getElementById('cart-badge');
+      badge.innerText = cart.length;
+      badge.classList.remove('hidden');
+      if (tg) tg.HapticFeedback?.impactOccurred('light');
+    }
+
+    function toggleCart() {
+      if (cart.length === 0) {
+        alert("Il carrello è vuoto!");
+        return;
+      }
+      let total = cart.reduce((sum, item) => sum + item.price, 0);
+      let summary = cart.map(i => `• ${i.name} (${i.qty}) - €${i.price}`).join('\n');
+      if (confirm(`Riepilogo Carrello:\n\n${summary}\n\nTotale: €${total}\n\nVuoi confermare l'ordine?`)) {
+        if (tg) {
+          tg.sendData(JSON.stringify({ cart, total }));
+          tg.close();
+        } else {
+          alert("Ordine inviato con successo!");
+          cart = [];
+          document.getElementById('cart-badge').classList.add('hidden');
+        }
+      }
+    }
+
+    // Inizializzazione
+    loadProducts();
   </script>
 </body>
 </html>
