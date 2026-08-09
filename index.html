@@ -86,7 +86,7 @@
       </nav>
     </div>
     <div class="border-t border-gray-800 pt-4 text-xs text-center text-gray-500">
-      v1.37.0 • Boston George 420
+      v1.39.0 • Boston George 420
     </div>
   </aside>
 
@@ -267,8 +267,8 @@
         <button onclick="filterCategory('🇪🇸 Spagna (Ship)', this)" class="cat-btn px-3.5 py-2 rounded-xl bg-gray-800 text-gray-300 text-xs font-medium whitespace-nowrap">🇪🇸 Spagna (Ship)</button>
         <button onclick="filterCategory('🇳🇱 Olanda (Ship)', this)" class="cat-btn px-3.5 py-2 rounded-xl bg-gray-800 text-gray-300 text-xs font-medium whitespace-nowrap">🇳🇱 Olanda (Ship)</button>
         <button onclick="filterCategory('🇺🇸 USA (Ship)', this)" class="cat-btn px-3.5 py-2 rounded-xl bg-gray-800 text-gray-300 text-xs font-medium whitespace-nowrap">🇺🇸 USA (Ship)</button>
-        <button onclick="filterCategory('🤝 Umbria (Meet Up)', this)" class="cat-btn px-3.5 py-2 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-bold whitespace-nowrap">🤝 Umbria (Meet Up)</button>
         <button onclick="filterCategory('🤝 Roma (Meet Up)', this)" class="cat-btn px-3.5 py-2 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-bold whitespace-nowrap">🤝 Roma (Meet Up)</button>
+        <button onclick="filterCategory('🤝 Fondi (Meet Up)', this)" class="cat-btn px-3.5 py-2 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-bold whitespace-nowrap">🤝 Fondi (Meet Up)</button>
       </div>
     </div>
 
@@ -578,8 +578,8 @@
           if (cat.includes('Spagna') && p.category.includes('Spagna') && !p.category.includes('Meet Up')) return true;
           if (cat.includes('Olanda') && p.category.includes('Olanda')) return true;
           if (cat.includes('USA') && p.category.includes('USA')) return true;
-          if (cat.includes('Umbria') && p.category.includes('Umbria')) return true;
           if (cat.includes('Roma') && p.category.includes('Roma')) return true;
+          if (cat.includes('Fondi') && p.category.includes('Fondi')) return true;
           return false;
         }));
       }
