@@ -1,5 +1,6 @@
 import os
 import json
+import time
 import threading
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import requests
@@ -540,7 +541,7 @@ def handle_admin_text(message):
     state = user_states.get(user_id, {})
     step = state.get("step")
 
-    if message.text.startswith("/punti"):
+    if message.text and message.text.startswith("/punti"):
         try:
             parts = message.text.split(" ", 2)
             target_id = int(parts[1])
@@ -555,7 +556,7 @@ def handle_admin_text(message):
             bot.reply_to(message, "❌ Formato errato. Usa: /punti ID_UTENTE QUANTITA", reply_markup=get_cancel_keyboard())
         return
 
-    if message.text.startswith("/trofeo"):
+    if message.text and message.text.startswith("/trofeo"):
         try:
             parts = message.text.split(" ", 2)
             target_id = int(parts[1])
@@ -624,7 +625,12 @@ def handle_admin_text(message):
         bot.reply_to(message, f"✅ Tracking per Ordine #{o_id} inviato all'acquirente!", reply_markup=get_admin_main_keyboard())
         user_states.pop(user_id, None)
 
+# --- CICLO DI RIPRISTINO E AUTORICONNESSIONE CONTINUA ---
 print("🤖 Avvio Bot Admin in corso...")
-bot.remove_webhook()
-bot.infinity_polling(skip_pending=True)
-
+while True:
+    try:
+        bot.remove_webhook()
+        bot.infinity_polling(skip_pending=True, timeout=20, long_polling_timeout=20)
+    except Exception as e:
+        print(f"Errore Polling (riavvio automatico in 3 sec): {e}")
+        time.sleep(3)
