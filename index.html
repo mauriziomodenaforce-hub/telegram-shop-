@@ -44,7 +44,7 @@
       <span class="font-bold text-lg tracking-wide">Boston George 420</span>
     </div>
     <div class="flex items-center space-x-2">
-      <button onclick="toggleCart()" class="relative p-2 rounded-lg bg-gray-800 hover:bg-gray-700">
+      <button onclick="openCartModal()" class="relative p-2 rounded-lg bg-gray-800 hover:bg-gray-700">
         <i data-lucide="shopping-cart" class="w-5 h-5 text-gray-200"></i>
         <span id="cart-badge" class="absolute -top-1 -right-1 bg-emerald-500 text-black text-xs font-bold w-4 h-4 rounded-full flex items-center justify-center hidden">0</span>
       </button>
@@ -71,7 +71,7 @@
         <a href="#" onclick="scrollToProducts(); toggleDrawer();" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-gray-300 hover:bg-gray-800 transition">
           <i data-lucide="package" class="w-5 h-5"></i><span>Prodotti</span>
         </a>
-        <a href="#" onclick="toggleCart(); toggleDrawer();" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-gray-300 hover:bg-gray-800 transition">
+        <a href="#" onclick="openCartModal(); toggleDrawer();" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-gray-300 hover:bg-gray-800 transition">
           <i data-lucide="shopping-bag" class="w-5 h-5"></i><span>Carrello</span>
         </a>
         <a href="#" onclick="openTrophiesModal(); toggleDrawer();" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-gray-300 hover:bg-gray-800 transition">
@@ -86,9 +86,53 @@
       </nav>
     </div>
     <div class="border-t border-gray-800 pt-4 text-xs text-center text-gray-500">
-      v1.33.0 • Boston George 420
+      v1.35.0 • Boston George 420
     </div>
   </aside>
+
+  <!-- MODALE CARRELLO & DATI SPEDIZIONE -->
+  <div id="cart-modal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 hidden backdrop-blur-md">
+    <div class="bg-[#181818] border border-gray-800 rounded-2xl w-full max-w-sm p-5 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center border-b border-gray-800 pb-3">
+        <h3 class="font-bold text-lg text-white flex items-center"><i data-lucide="shopping-bag" class="w-5 h-5 text-emerald-400 mr-2"></i> Il tuo Carrello</h3>
+        <button onclick="closeCartModal()" class="text-gray-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <div id="cart-items-list" class="space-y-2 max-h-40 overflow-y-auto pr-1"></div>
+
+      <div class="border-t border-gray-800 pt-3 space-y-3">
+        <div class="flex justify-between text-sm font-bold text-white">
+          <span>Totale:</span>
+          <span id="cart-total-price" class="text-emerald-400">€0</span>
+        </div>
+
+        <div>
+          <label class="text-xs font-semibold text-gray-400 uppercase tracking-wider block mb-1">Indirizzo di Spedizione / Punto Meet Up</label>
+          <textarea id="order-address-input" rows="2" placeholder="Inserisci indirizzo completo (Via, Città, CAP) o luogo di incontro..." class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"></textarea>
+        </div>
+
+        <button onclick="submitOrderProcess()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold py-3 rounded-xl text-xs uppercase tracking-wider shadow-lg shadow-emerald-500/20">
+          Invia Ordine
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANNELLO DI CONFERMA ORDINO INVIATO (STILE IMMAGINE) -->
+  <div id="success-panel-modal" class="fixed inset-0 bg-[#dbeafe] z-50 flex flex-col items-center justify-center p-6 text-center hidden">
+    <div class="w-20 h-20 bg-emerald-500 rounded-2xl flex items-center justify-center mb-6 shadow-xl">
+      <i data-lucide="check" class="w-12 h-12 text-white stroke-[3]"></i>
+    </div>
+    
+    <h2 class="text-2xl font-black text-slate-800 mb-2" id="success-order-title">Ordine #0 inviato!</h2>
+    <p class="text-slate-600 text-sm max-w-xs mb-8 leading-relaxed">
+      Il venditore è stato avvisato. Riceverai la conferma ed i dettagli direttamente nella chat del Bot.
+    </p>
+
+    <button onclick="closeSuccessPanel()" class="w-full max-w-xs bg-[#38bdf8] hover:bg-sky-500 text-white font-extrabold py-3.5 rounded-xl shadow-md text-sm transition">
+      Chiudi
+    </button>
+  </div>
 
   <!-- MODALE PUNTI E TROFEI -->
   <div id="trophies-modal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 hidden backdrop-blur-md">
@@ -136,7 +180,7 @@
     </div>
   </div>
 
-  <!-- MODALE CONTATTI E SUPPORTO -->
+  <!-- MODALE CONTATTI -->
   <div id="support-modal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 hidden backdrop-blur-md">
     <div class="bg-[#181818] border border-gray-800 rounded-2xl w-full max-w-sm p-5 space-y-4 shadow-2xl">
       <div class="flex justify-between items-center border-b border-gray-800 pb-3">
@@ -181,44 +225,26 @@
         <h1 class="text-2xl font-black text-white tracking-wide">Boston George 420</h1>
         <div class="flex items-center space-x-3 text-xs text-gray-300 mt-1">
           <span class="flex items-center"><i data-lucide="package" class="w-3.5 h-3.5 mr-1 text-emerald-400"></i> <span id="stat-products">--</span> Prodotti</span>
-          <span class="flex items-center"><i data-lucide="grid" class="w-3.5 h-3.5 mr-1 text-blue-400"></i> 4 Categorie</span>
           <span class="flex items-center text-amber-400">★ 5.0 (600+)</span>
         </div>
       </div>
     </div>
 
-    <div class="bg-gray-900/80 border border-gray-800 rounded-2xl p-4 space-y-2 text-sm text-gray-300">
-      <p class="font-medium text-white">👋 Benvenuto nello shop di Boston George 420!</p>
-      <p class="text-xs text-gray-400">📦 Tutti i prodotti in pronta consegna con spedizioni riservate e sicure.</p>
-      <div class="flex flex-wrap gap-2 pt-1 text-xs">
-        <span class="bg-gray-800 px-2 py-1 rounded-md">🇮🇹 Italia</span>
-        <span class="bg-gray-800 px-2 py-1 rounded-md">🇪🇸 Spagna</span>
-        <span class="bg-gray-800 px-2 py-1 rounded-md">🇳🇱 Olanda</span>
-        <span class="bg-gray-800 px-2 py-1 rounded-md">🇺🇸 USA</span>
-      </div>
-    </div>
-
-    <div class="grid grid-cols-2 gap-3">
-      <button onclick="scrollToProducts()" class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-black font-extrabold py-3.5 px-3 rounded-xl flex items-center justify-center space-x-1.5 shadow-lg shadow-emerald-500/20 text-xs">
-        <i data-lucide="shopping-bag" class="w-4 h-4"></i>
-        <span>Sfoglia prodotti</span>
-      </button>
-      <button onclick="openTrophiesModal()" class="bg-gray-800 hover:bg-gray-700 border border-amber-500/30 text-amber-300 font-extrabold py-3.5 px-3 rounded-xl flex items-center justify-center space-x-1.5 text-xs">
-        <i data-lucide="award" class="w-4 h-4 text-amber-400"></i>
-        <span>I miei trofei</span>
-      </button>
-    </div>
-
+    <!-- BARRA CATEGORIE SEPARATE: SHIP VS MEET UP -->
     <div class="space-y-3" id="products-section">
       <div class="flex justify-between items-center">
         <h2 class="text-lg font-bold text-white tracking-wide">Catalogo Prodotti</h2>
       </div>
+      
       <div class="flex space-x-2 overflow-x-auto hide-scrollbar pb-1">
-        <button onclick="filterCategory('ALL')" class="cat-btn px-4 py-2 rounded-xl bg-emerald-500 text-black text-xs font-bold whitespace-nowrap">Tutti</button>
-        <button onclick="filterCategory('🇮🇹 Italia')" class="cat-btn px-4 py-2 rounded-xl bg-gray-800 text-gray-300 text-xs font-medium whitespace-nowrap">🇮🇹 Italia</button>
-        <button onclick="filterCategory('🇪🇸 Spagna')" class="cat-btn px-4 py-2 rounded-xl bg-gray-800 text-gray-300 text-xs font-medium whitespace-nowrap">🇪🇸 Spagna</button>
-        <button onclick="filterCategory('🇳🇱 Olanda')" class="cat-btn px-4 py-2 rounded-xl bg-gray-800 text-gray-300 text-xs font-medium whitespace-nowrap">🇳🇱 Olanda</button>
-        <button onclick="filterCategory('🇺🇸 USA')" class="cat-btn px-4 py-2 rounded-xl bg-gray-800 text-gray-300 text-xs font-medium whitespace-nowrap">🇺🇸 USA</button>
+        <button onclick="filterCategory('ALL')" class="cat-btn px-3.5 py-2 rounded-xl bg-emerald-500 text-black text-xs font-bold whitespace-nowrap">Tutti</button>
+        <button onclick="filterCategory('🇮🇹 Italia (Ship)')" class="cat-btn px-3.5 py-2 rounded-xl bg-gray-800 text-gray-300 text-xs font-medium whitespace-nowrap">🇮🇹 Italia (Ship)</button>
+        <button onclick="filterCategory('🇪🇸 Spagna (Ship)')" class="cat-btn px-3.5 py-2 rounded-xl bg-gray-800 text-gray-300 text-xs font-medium whitespace-nowrap">🇪🇸 Spagna (Ship)</button>
+        <button onclick="filterCategory('🇳🇱 Olanda (Ship)')" class="cat-btn px-3.5 py-2 rounded-xl bg-gray-800 text-gray-300 text-xs font-medium whitespace-nowrap">🇳🇱 Olanda (Ship)</button>
+        <button onclick="filterCategory('🇺🇸 USA (Ship)')" class="cat-btn px-3.5 py-2 rounded-xl bg-gray-800 text-gray-300 text-xs font-medium whitespace-nowrap">🇺🇸 USA (Ship)</button>
+        <button onclick="filterCategory('🤝 Umbria (Meet Up)')" class="cat-btn px-3.5 py-2 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-bold whitespace-nowrap">🤝 Umbria (Meet Up)</button>
+        <button onclick="filterCategory('🤝 Roma (Meet Up)')" class="cat-btn px-3.5 py-2 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-bold whitespace-nowrap">🤝 Roma (Meet Up)</button>
+        <button onclick="filterCategory('🤝 Spagna (Meet Up)')" class="cat-btn px-3.5 py-2 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-bold whitespace-nowrap">🤝 Spagna (Meet Up)</button>
       </div>
     </div>
 
@@ -251,6 +277,87 @@
 
     function scrollToProducts() {
       document.getElementById('products-section').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function openCartModal() {
+      if (cart.length === 0) {
+        alert("Il carrello è vuoto!");
+        return;
+      }
+      const list = document.getElementById('cart-items-list');
+      const total = cart.reduce((sum, item) => sum + item.price, 0);
+      
+      list.innerHTML = cart.map((i, index) => `
+        <div class="flex justify-between items-center bg-gray-900 p-2.5 rounded-xl border border-gray-800 text-xs">
+          <div>
+            <div class="font-bold text-white">${i.name}</div>
+            <div class="text-gray-400">${i.qty} - €${i.price}</div>
+          </div>
+          <button onclick="removeFromCart(${index})" class="text-red-400 hover:text-red-300 font-bold p-1">❌</button>
+        </div>
+      `).join('');
+
+      document.getElementById('cart-total-price').innerText = `€${total}`;
+      document.getElementById('cart-modal').classList.remove('hidden');
+    }
+
+    function closeCartModal() {
+      document.getElementById('cart-modal').classList.add('hidden');
+    }
+
+    function removeFromCart(index) {
+      cart.splice(index, 1);
+      const badge = document.getElementById('cart-badge');
+      badge.innerText = cart.length;
+      if (cart.length === 0) {
+        badge.classList.add('hidden');
+        closeCartModal();
+      } else {
+        openCartModal();
+      }
+    }
+
+    async function submitOrderProcess() {
+      const address = document.getElementById('order-address-input').value.trim();
+      if (!address) {
+        alert("Per favore, inserisci un indirizzo o luogo di ritrovo!");
+        return;
+      }
+
+      const total = cart.reduce((sum, item) => sum + item.price, 0);
+      const user = tg?.initDataUnsafe?.user || {};
+      const userId = user.id || 0;
+      const username = user.username || user.first_name || "Anonimo";
+
+      try {
+        const res = await fetch("https://telegram-shop-9swy.onrender.com/api/order", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ cart, total, user_id: userId, username, address })
+        });
+
+        if (res.ok) {
+          const resData = await res.json();
+          closeCartModal();
+          cart = [];
+          document.getElementById('cart-badge').classList.add('hidden');
+          document.getElementById('order-address-input').value = "";
+          
+          document.getElementById('success-order-title').innerText = `Ordine #${resData.order_id || 1} inviato!`;
+          document.getElementById('success-panel-modal').classList.remove('hidden');
+          lucide.createIcons();
+        } else {
+          alert("❌ Errore durante l'invio dell'ordine.");
+        }
+      } catch (e) {
+        console.error("Errore Invio:", e);
+        alert("❌ Errore di connessione.");
+      }
+    }
+
+    function closeSuccessPanel() {
+      document.getElementById('success-panel-modal').classList.add('hidden');
+      if (tg) tg.close();
     }
 
     async function openTrophiesModal() {
@@ -383,7 +490,7 @@
     function renderProducts(products) {
       const container = document.getElementById('products-grid');
       if (products.length === 0) {
-        container.innerHTML = `<div class="text-center py-6 text-gray-500 text-xs">Nessun prodotto disponibile in vetrina.</div>`;
+        container.innerHTML = `<div class="text-center py-6 text-gray-500 text-xs">Nessun prodotto disponibile per questa categoria.</div>`;
         return;
       }
 
@@ -445,41 +552,6 @@
       badge.innerText = cart.length;
       badge.classList.remove('hidden');
       if (tg) tg.HapticFeedback?.impactOccurred('light');
-    }
-
-    async function toggleCart() {
-      if (cart.length === 0) {
-        alert("Il carrello è vuoto!");
-        return;
-      }
-      let total = cart.reduce((sum, item) => sum + item.price, 0);
-      let summary = cart.map(i => `• ${i.name} (${i.qty}) - €${i.price}`).join('\n');
-      
-      if (confirm(`Riepilogo Carrello:\n\n${summary}\n\nTotale: €${total}\n\nVuoi confermare l'ordine?`)) {
-        const user = tg?.initDataUnsafe?.user || {};
-        const userId = user.id || 0;
-        const username = user.username || user.first_name || "Anonimo";
-
-        try {
-          const res = await fetch("https://telegram-shop-9swy.onrender.com/api/order", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ cart, total, user_id: userId, username })
-          });
-
-          if (res.ok) {
-            alert("🎉 Ordine inviato con successo! Riceverai la conferma nella chat del bot.");
-            cart = [];
-            document.getElementById('cart-badge').classList.add('hidden');
-            if (tg) tg.close();
-          } else {
-            alert("❌ Errore nell'invio dell'ordine al server. Riprova.");
-          }
-        } catch (e) {
-          console.error("Errore Invio:", e);
-          alert("❌ Errore di connessione. Riprova tra poco.");
-        }
-      }
     }
 
     loadProducts();
