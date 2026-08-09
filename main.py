@@ -116,7 +116,7 @@ def db_update_user_points(target_id, points_delta):
         print(f"Errore punti: {e}")
     return False, 0
 
-# --- SERVER API ED ORDINI (CON GESTIONE HEAD) ---
+# --- SERVER API ED ORDINI ---
 class HealthCheckHandler(BaseHTTPRequestHandler):
     def do_HEAD(self):
         self.send_response(200)
@@ -154,8 +154,8 @@ class HealthCheckHandler(BaseHTTPRequestHandler):
                 try:
                     bot.send_message(
                         int(user_id),
-                        f"🎉 **Ordine #{order_id} Inviato con Successo!**\n\n"
-                        f"Totale: **€{total}**\n"
+                        f"🎉 Ordine #{order_id} Inviato con Successo!\n\n"
+                        f"Totale: €{total}\n"
                         "Un operatore prenderà in carico la tua richiesta a breve."
                     )
                 except Exception as e:
@@ -164,10 +164,10 @@ class HealthCheckHandler(BaseHTTPRequestHandler):
             # Notifica all'Admin
             items_text = "\n".join([f"• {i['name']} ({i['qty']}) - €{i['price']}" for i in cart])
             admin_msg = (
-                f"🚨 **NUOVO ORDINE RICEVUTO! #{order_id}**\n\n"
-                f"👤 Utente: @{username} (`{user_id}`)\n"
+                f"🚨 NUOVO ORDINE RICEVUTO! #{order_id}\n\n"
+                f"👤 Utente: @{username} (ID: {user_id})\n"
                 f"📦 Prodotti:\n{items_text}\n\n"
-                f"💰 **Totale: €{total}**"
+                f"💰 Totale: €{total}"
             )
 
             markup = types.InlineKeyboardMarkup(row_width=2)
@@ -176,10 +176,12 @@ class HealthCheckHandler(BaseHTTPRequestHandler):
                 types.InlineKeyboardButton("❌ Annulla", callback_data=f"ord_cnc_{order_id}_{user_id}"),
                 types.InlineKeyboardButton("🚚 Invia Tracking", callback_data=f"ord_trk_{order_id}_{user_id}")
             )
-            try:
-                bot.send_message(ADMIN_ID, admin_msg, parse_mode='Markdown', reply_markup=markup)
-            except Exception as e:
-                print(f"Errore notifica admin: {e}")
+
+            if ADMIN_ID and ADMIN_ID != 0:
+                try:
+                    bot.send_message(ADMIN_ID, admin_msg, reply_markup=markup)
+                except Exception as e:
+                    print(f"Errore invio admin: {e}")
 
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
@@ -225,11 +227,11 @@ def send_welcome(message):
     db_register_user(user_id, username)
 
     welcome_text = (
-        "👋 **Benvenuti nello shop di Boston George 420!**\n\n"
+        "👋 Benvenuti nello shop di Boston George 420!\n\n"
         "Qui troverete tutti i prodotti ideali per voi o per il vostro business.\n\n"
         "📦 Tutti i PRODOTTI sono in pronta consegna\n"
         "🤝 Consegna a mano disponibile\n\n"
-        "🚚 **Spedizioni da:**\n"
+        "🚚 Spedizioni da:\n"
         "🇮🇹 Italia | 🇪🇸 Spagna | 🇳🇱 Olanda |\n"
         "🇺🇸 USA\n\n"
         "🛍️ Cliccate in basso per aprire la vetrina!"
@@ -240,7 +242,7 @@ def send_welcome(message):
         btn = types.InlineKeyboardButton("🛍 Apri la vetrina", web_app=types.WebAppInfo(WEB_APP_URL))
         markup.add(btn)
 
-    bot.send_message(user_id, welcome_text, parse_mode='Markdown', reply_markup=markup)
+    bot.send_message(user_id, welcome_text, reply_markup=markup)
 
 # --- COMANDO ADMIN ---
 @bot.message_handler(commands=['admin'])
@@ -251,8 +253,7 @@ def admin_panel(message):
 
     bot.send_message(
         message.chat.id,
-        "⚙️ **PANNELLO GESTIONALE AMMINISTRATORE**\n\nScegli la sezione da gestire:",
-        parse_mode='Markdown',
+        "⚙️ PANNELLO GESTIONALE AMMINISTRATORE\n\nScegli la sezione da gestire:",
         reply_markup=get_admin_main_keyboard()
     )
 
@@ -266,31 +267,31 @@ def handle_callbacks(call):
     data = call.data
 
     if data == "m_main":
-        bot.edit_message_text("⚙️ **PANNELLO GESTIONALE AMMINISTRATORE**", user_id, call.message.message_id, parse_mode='Markdown', reply_markup=get_admin_main_keyboard())
+        bot.edit_message_text("⚙️ PANNELLO GESTIONALE AMMINISTRATORE", user_id, call.message.message_id, reply_markup=get_admin_main_keyboard())
 
     elif data == "m_prod":
-        bot.edit_message_text("📦 **GESTIONE PRODOTTI & MEDIA**\n\nCosa desideri fare?", user_id, call.message.message_id, parse_mode='Markdown', reply_markup=get_admin_prod_keyboard())
+        bot.edit_message_text("📦 GESTIONE PRODOTTI & MEDIA\n\nCosa desideri fare?", user_id, call.message.message_id, reply_markup=get_admin_prod_keyboard())
 
     elif data == "m_ord":
-        bot.edit_message_text("🛒 **GESTIONE ORDINI**\n\nGli ordini ricevuti dalla Web App compaiono direttamente qui in chat con i tasti di accettazione e invio tracking.", user_id, call.message.message_id, parse_mode='Markdown', reply_markup=get_admin_main_keyboard())
+        bot.edit_message_text("🛒 GESTIONE ORDINI\n\nGli ordini ricevuti dalla Web App compaiono direttamente qui in chat con i tasti di accettazione e invio tracking.", user_id, call.message.message_id, reply_markup=get_admin_main_keyboard())
 
     elif data == "m_pts":
-        bot.send_message(user_id, "🏆 **GESTIONE PUNTI UTENTE**\n\nPer assegnare o rimuovere punti invia un messaggio con questo formato:\n`/punti ID_UTENTE QUANTITA`\n*(Esempio: `/punti 12345678 100`)*", parse_mode='Markdown')
+        bot.send_message(user_id, "🏆 GESTIONE PUNTI UTENTE\n\nPer assegnare o rimuovere punti invia un messaggio con questo formato:\n/punti ID_UTENTE QUANTITA\n(Esempio: /punti 12345678 100)")
 
     elif data == "m_cfg":
-        bot.send_message(user_id, "🎨 **GRAFICA & INFO SHOP**\n\nPuoi personalizzare il video del banner e il logo sostituendo i link in `index.html` su GitHub.", parse_mode='Markdown')
+        bot.send_message(user_id, "🎨 GRAFICA & INFO SHOP\n\nPuoi personalizzare il video del banner e il logo sostituendo i link in index.html su GitHub.")
 
     elif data == "p_add":
         markup = types.InlineKeyboardMarkup(row_width=2)
         cats = ["🇮🇹 Italia", "🇪🇸 Spagna", "🇳🇱 Olanda", "🇺🇸 USA"]
         btns = [types.InlineKeyboardButton(c, callback_data=f"addcat_{c}") for c in cats]
         markup.add(*btns)
-        bot.edit_message_text("Seleziona la **categoria** per il nuovo prodotto:", user_id, call.message.message_id, parse_mode='Markdown', reply_markup=markup)
+        bot.edit_message_text("Seleziona la categoria per il nuovo prodotto:", user_id, call.message.message_id, reply_markup=markup)
 
     elif data.startswith("addcat_"):
         cat = data.replace("addcat_", "")
         user_states[user_id] = {"category": cat, "step": "WAITING_MEDIA"}
-        bot.edit_message_text(f"Categoria scelta: **{cat}**\n\n📸 Ora invia la **Foto o Video** del prodotto.", user_id, call.message.message_id, parse_mode='Markdown')
+        bot.edit_message_text(f"Categoria scelta: {cat}\n\n📸 Ora invia la Foto o Video del prodotto.", user_id, call.message.message_id)
 
     elif data == "p_list":
         prods = db_get_products()
@@ -300,13 +301,13 @@ def handle_callbacks(call):
 
         for p in prods:
             status_str = "🟢 In Vetrina" if p.get("in_showcase") else "🔴 Nascosto"
-            msg = f"📦 **{p.get('name')}**\n🏷 Categoria: {p.get('category')}\n👁 Stato: {status_str}"
+            msg = f"📦 {p.get('name')}\n🏷 Categoria: {p.get('category')}\n👁 Stato: {status_str}"
             markup = types.InlineKeyboardMarkup(row_width=2)
             markup.add(
                 types.InlineKeyboardButton("👁️ Attiva/Disattiva", callback_data=f"tog_{p['id']}_{p.get('in_showcase')}"),
                 types.InlineKeyboardButton("🗑️ Elimina", callback_data=f"del_{p['id']}")
             )
-            bot.send_message(user_id, msg, parse_mode='Markdown', reply_markup=markup)
+            bot.send_message(user_id, msg, reply_markup=markup)
 
     elif data.startswith("tog_"):
         parts = data.split("_")
@@ -329,20 +330,20 @@ def handle_callbacks(call):
         _, _, o_id, u_id = data.split("_")
         db_update_order_status(o_id, "ACCEPTED")
         if u_id and u_id != "0":
-            bot.send_message(int(u_id), f"✅ **Il tuo ordine #{o_id} è stato confermato!**\nInizieremo subito la preparazione.")
+            bot.send_message(int(u_id), f"✅ Il tuo ordine #{o_id} è stato confermato!\nInizieremo subito la preparazione.")
         bot.answer_callback_query(call.id, "Ordine accettato")
 
     elif data.startswith("ord_cnc_"):
         _, _, o_id, u_id = data.split("_")
         db_update_order_status(o_id, "CANCELLED")
         if u_id and u_id != "0":
-            bot.send_message(int(u_id), f"❌ **Il tuo ordine #{o_id} è stato annullato.** Contatta il supporto per chiarimenti.")
+            bot.send_message(int(u_id), f"❌ Il tuo ordine #{o_id} è stato annullato. Contatta il supporto per chiarimenti.")
         bot.answer_callback_query(call.id, "Ordine annullato")
 
     elif data.startswith("ord_trk_"):
         _, _, o_id, u_id = data.split("_")
         user_states[user_id] = {"step": "WAITING_TRACKING", "target_order": o_id, "target_user": u_id}
-        bot.send_message(user_id, f"🚚 Invia ora il **Codice di Tracking** per l'Ordine #{o_id}:")
+        bot.send_message(user_id, f"🚚 Invia ora il Codice di Tracking per l'Ordine #{o_id}:")
 
 # --- WIZARD INPUT ---
 @bot.message_handler(content_types=['photo', 'video'])
@@ -365,7 +366,7 @@ def handle_media(message):
     user_states[user_id]["media_type"] = media_type
     user_states[user_id]["step"] = "WAITING_NAME"
 
-    bot.reply_to(message, "✅ Media caricato!\n\n📝 Ora invia il **Nome** del prodotto:")
+    bot.reply_to(message, "✅ Media caricato!\n\n📝 Ora invia il Nome del prodotto:")
 
 @bot.message_handler(func=lambda m: m.chat.id == ADMIN_ID)
 def handle_admin_text(message):
@@ -380,12 +381,12 @@ def handle_admin_text(message):
             delta = int(parts[2])
             ok, new_total = db_update_user_points(target_id, delta)
             if ok:
-                bot.reply_to(message, f"🏆 **Punti aggiornati!**\nUtente `{target_id}`: ora ha **{new_total} punti**.")
-                bot.send_message(target_id, f"🎉 Hai ricevuto **{delta} punti**! Il tuo totale è ora: **{new_total} punti**.")
+                bot.reply_to(message, f"🏆 Punti aggiornati!\nUtente {target_id}: ora ha {new_total} punti.")
+                bot.send_message(target_id, f"🎉 Hai ricevuto {delta} punti! Il tuo totale è ora: {new_total} punti.")
             else:
                 bot.reply_to(message, "❌ Utente non trovato nel database.")
         except Exception:
-            bot.reply_to(message, "❌ Formato errato. Usa: `/punti ID_UTENTE QUANTITA`")
+            bot.reply_to(message, "❌ Formato errato. Usa: /punti ID_UTENTE QUANTITA")
         return
 
     if step == "WAITING_NAME":
@@ -393,8 +394,7 @@ def handle_admin_text(message):
         user_states[user_id]["step"] = "WAITING_PRICES"
         bot.reply_to(
             message,
-            "📝 Nome registrato!\n\n💰 Invia i **prezzi/quantità** nel seguente formato:\n`10g - 50, 25g - 100, 50g - 180`",
-            parse_mode='Markdown'
+            "📝 Nome registrato!\n\n💰 Invia i prezzi/quantità nel seguente formato:\n10g - 50, 25g - 100, 50g - 180"
         )
 
     elif step == "WAITING_PRICES":
@@ -406,7 +406,7 @@ def handle_admin_text(message):
                 p = r.split("-")
                 prices.append({"qty": p[0].strip(), "price": float(p[1].strip().replace("€", "").strip())})
         except Exception:
-            bot.reply_to(message, "❌ Formato non valido. Esempio corretto: `10g - 50, 25g - 100`")
+            bot.reply_to(message, "❌ Formato non valido. Esempio corretto: 10g - 50, 25g - 100")
             return
 
         st = user_states[user_id]
@@ -422,9 +422,9 @@ def handle_admin_text(message):
 
         success, err_msg = db_add_product(prod_payload)
         if success:
-            bot.reply_to(message, f"🎉 **PRODOTTO PUBBLICATO IN VETRINA!**\n\n📦 **{st['name']}**\n🏷️ Categoria: {st['category']}")
+            bot.reply_to(message, f"🎉 PRODOTTO PUBBLICATO IN VETRINA!\n\n📦 {st['name']}\n🏷️ Categoria: {st['category']}")
         else:
-            bot.reply_to(message, f"❌ **Errore Supabase:**\n`{err_msg}`", parse_mode='Markdown')
+            bot.reply_to(message, f"❌ Errore Supabase:\n{err_msg}")
 
         user_states.pop(user_id, None)
 
@@ -437,10 +437,15 @@ def handle_admin_text(message):
         if u_id and u_id != "0":
             bot.send_message(
                 int(u_id),
-                f"🚚 **IL TUO ORDINE #{o_id} È STATO SPEDITO!**\n\nCodice di Tracking: `{tracking_code}`",
-                parse_mode='Markdown'
+                f"🚚 IL TUO ORDINE #{o_id} È STATO SPEDITO!\n\nCodice di Tracking: {tracking_code}"
             )
         bot.reply_to(message, f"✅ Tracking per Ordine #{o_id} inviato all'acquirente!")
+        user_states.pop(user_id, None)
+
+print("🤖 Avvio Bot Admin in corso...")
+bot.remove_webhook()
+bot.infinity_polling(skip_pending=True)
+
         user_states.pop(user_id, None)
 
 print("🤖 Avvio Bot Admin in corso...")
