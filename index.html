@@ -86,7 +86,7 @@
       </nav>
     </div>
     <div class="border-t border-gray-800 pt-4 text-xs text-center text-gray-500">
-      v1.36.0 • Boston George 420
+      v1.37.0 • Boston George 420
     </div>
   </aside>
 
@@ -227,13 +227,13 @@
         <h1 class="text-2xl font-black text-white tracking-wide">Boston George 420</h1>
         <div class="flex items-center space-x-3 text-xs text-gray-300 mt-1">
           <span class="flex items-center"><i data-lucide="package" class="w-3.5 h-3.5 mr-1 text-emerald-400"></i> <span id="stat-products">--</span> Prodotti</span>
-          <span class="flex items-center"><i data-lucide="grid" class="w-3.5 h-3.5 mr-1 text-blue-400"></i> 7 Categorie</span>
+          <span class="flex items-center"><i data-lucide="grid" class="w-3.5 h-3.5 mr-1 text-blue-400"></i> 6 Categorie</span>
           <span class="flex items-center text-amber-400">★ 5.0 (600+)</span>
         </div>
       </div>
     </div>
 
-    <!-- SCHEDA BENVERNUTO -->
+    <!-- SCHEDA BENVENUTO -->
     <div class="bg-gray-900/80 border border-gray-800 rounded-2xl p-4 space-y-2 text-sm text-gray-300 shadow-md">
       <p class="font-bold text-white">👋 Benvenuto nello shop di Boston George 420!</p>
       <p class="text-xs text-gray-400">📦 Tutti i prodotti in pronta consegna con spedizioni riservate o ritrovo sul posto.</p>
@@ -269,7 +269,6 @@
         <button onclick="filterCategory('🇺🇸 USA (Ship)', this)" class="cat-btn px-3.5 py-2 rounded-xl bg-gray-800 text-gray-300 text-xs font-medium whitespace-nowrap">🇺🇸 USA (Ship)</button>
         <button onclick="filterCategory('🤝 Umbria (Meet Up)', this)" class="cat-btn px-3.5 py-2 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-bold whitespace-nowrap">🤝 Umbria (Meet Up)</button>
         <button onclick="filterCategory('🤝 Roma (Meet Up)', this)" class="cat-btn px-3.5 py-2 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-bold whitespace-nowrap">🤝 Roma (Meet Up)</button>
-        <button onclick="filterCategory('🤝 Spagna (Meet Up)', this)" class="cat-btn px-3.5 py-2 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-bold whitespace-nowrap">🤝 Spagna (Meet Up)</button>
       </div>
     </div>
 
@@ -575,9 +574,8 @@
         renderProducts(allProducts.filter(p => {
           if (!p.category) return false;
           if (p.category === cat) return true;
-          // Match Flessibile per prodotti salvati con nomi precedenti
           if (cat.includes('Italia') && p.category.includes('Italia')) return true;
-          if (cat.includes('Spagna') && p.category.includes('Spagna') && !cat.includes('Meet Up')) return true;
+          if (cat.includes('Spagna') && p.category.includes('Spagna') && !p.category.includes('Meet Up')) return true;
           if (cat.includes('Olanda') && p.category.includes('Olanda')) return true;
           if (cat.includes('USA') && p.category.includes('USA')) return true;
           if (cat.includes('Umbria') && p.category.includes('Umbria')) return true;
