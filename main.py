@@ -92,8 +92,8 @@ def db_save_order(user_id, username, cart, total):
         print(f"Errore salvataggio ordine: {e}")
     return 999
 
-def db_get_orders(limit=20):
-    url = f"{SUPABASE_URL}/rest/v1/orders?select=*&order=created_at.desc&limit={limit}"
+def db_get_all_orders():
+    url = f"{SUPABASE_URL}/rest/v1/orders?select=*&order=created_at.desc"
     try:
         r = requests.get(url, headers=get_headers())
         return r.json() if r.status_code == 200 else []
@@ -228,7 +228,8 @@ def get_admin_main_keyboard():
     markup = types.InlineKeyboardMarkup(row_width=1)
     markup.add(
         types.InlineKeyboardButton("📦 Gestione Prodotti & Media", callback_data="m_prod"),
-        types.InlineKeyboardButton("🛒 Gestione Ordini", callback_data="m_ord"),
+        types.InlineKeyboardButton("🛒 Gestione Ordini Ricevuti", callback_data="m_ord"),
+        types.InlineKeyboardButton("📜 Storico Completo Ordini", callback_data="m_hist"),
         types.InlineKeyboardButton("🏆 Punti & Trofei Utenti", callback_data="m_pts")
     )
     return markup
@@ -305,14 +306,21 @@ def handle_callbacks(call):
         bot.edit_message_text("📦 GESTIONE PRODOTTI & MEDIA\n\nCosa desideri fare?", user_id, call.message.message_id, reply_markup=get_admin_prod_keyboard())
 
     elif data == "m_ord":
-        orders = db_get_orders(limit=15)
+        bot.edit_message_text(
+            "🛒 GESTIONE ORDINI RICEVUTI\n\nGli ordini effettuati dai clienti arrivano automaticamente qui in chat in tempo reale con i tasti per Accettare, Annullare o Inviare il Tracking.",
+            user_id, call.message.message_id,
+            reply_markup=get_admin_main_keyboard()
+        )
+
+    elif data == "m_hist":
+        orders = db_get_all_orders()
         if not orders:
             nav_markup = types.InlineKeyboardMarkup()
             nav_markup.add(types.InlineKeyboardButton("🏠 Menu Principale", callback_data="m_main"))
-            bot.send_message(user_id, "📭 Nessun ordine registrato nel database.", reply_markup=nav_markup)
+            bot.send_message(user_id, "📭 Nessun ordine presente nello storico.", reply_markup=nav_markup)
             return
 
-        bot.send_message(user_id, f"📋 **RIEPILOGO ULTIMI {len(orders)} ORDINI RICEVUTI:**", parse_mode='Markdown')
+        bot.send_message(user_id, f"📜 **STORICO COMPLETO ORDINI ({len(orders)} totali):**", parse_mode='Markdown')
         
         status_map = {
             "PENDING": "⏳ In Attesa",
@@ -350,7 +358,7 @@ def handle_callbacks(call):
 
         nav_markup = types.InlineKeyboardMarkup(row_width=1)
         nav_markup.add(types.InlineKeyboardButton("🏠 Menu Principale", callback_data="m_main"))
-        bot.send_message(user_id, "👇 Seleziona un'opzione di navigazione:", reply_markup=nav_markup)
+        bot.send_message(user_id, "👇 Fine dello storico ordini:", reply_markup=nav_markup)
 
     elif data == "m_pts":
         msg = (
@@ -414,7 +422,6 @@ def handle_callbacks(call):
             new_status_str = "🟢 In Vetrina" if new_st else "🔴 Nascosto"
             bot.answer_callback_query(call.id, f"Stato aggiornato: {new_status_str}")
             
-            # Aggiorna il testo e il pulsante in tempo reale sulla stessa scheda
             msg_text = call.message.text
             if "Stato: 🟢 In Vetrina" in msg_text:
                 new_text = msg_text.replace("Stato: 🟢 In Vetrina", "Stato: 🔴 Nascosto")
@@ -620,3 +627,4 @@ def handle_admin_text(message):
 print("🤖 Avvio Bot Admin in corso...")
 bot.remove_webhook()
 bot.infinity_polling(skip_pending=True)
+
