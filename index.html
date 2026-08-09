@@ -74,11 +74,8 @@
         <a href="#" onclick="toggleCart(); toggleDrawer();" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-gray-300 hover:bg-gray-800 transition">
           <i data-lucide="shopping-bag" class="w-5 h-5"></i><span>Carrello</span>
         </a>
-        <a href="#" onclick="alert('Punti fedeltà in arrivo con il prossimo aggiornamento!'); toggleDrawer();" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-gray-300 hover:bg-gray-800 transition">
-          <i data-lucide="zap" class="w-5 h-5 text-amber-400"></i><span>I miei punti</span>
-        </a>
-        <a href="#" onclick="alert('Tracking Ordini in arrivo!'); toggleDrawer();" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-gray-300 hover:bg-gray-800 transition">
-          <i data-lucide="truck" class="w-5 h-5"></i><span>Tracking Ordini</span>
+        <a href="#" onclick="openTrophiesModal(); toggleDrawer();" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-gray-300 hover:bg-gray-800 transition">
+          <i data-lucide="zap" class="w-5 h-5 text-amber-400"></i><span>I miei punti e trofei</span>
         </a>
         <a href="#" onclick="alert('Supporto attivo via Bot Telegram!'); toggleDrawer();" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-gray-300 hover:bg-gray-800 transition">
           <i data-lucide="headphones" class="w-5 h-5"></i><span>Contatti</span>
@@ -90,10 +87,33 @@
     </div>
   </aside>
 
+  <!-- MODALE PUNTI E TROFEI -->
+  <div id="trophies-modal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 hidden backdrop-blur-md">
+    <div class="bg-[#181818] border border-gray-800 rounded-2xl w-full max-w-sm p-5 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center border-b border-gray-800 pb-3">
+        <h3 class="font-bold text-lg text-white flex items-center"><i data-lucide="award" class="w-5 h-5 text-amber-400 mr-2"></i> Punti & Trofei</h3>
+        <button onclick="closeTrophiesModal()" class="text-gray-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      
+      <div class="bg-gradient-to-r from-amber-500/10 to-yellow-500/10 border border-amber-500/20 rounded-xl p-4 text-center">
+        <span class="text-xs uppercase text-amber-400 font-bold tracking-wider">Saldo Punti</span>
+        <div class="text-3xl font-black text-amber-300 mt-1" id="user-points-val">--</div>
+      </div>
+
+      <div class="space-y-2">
+        <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Bacheca Trofei</span>
+        <div id="user-trophies-list" class="space-y-2 max-h-48 overflow-y-auto pr-1">
+          <div class="text-xs text-gray-500 text-center py-4">Caricamento in corso...</div>
+        </div>
+      </div>
+
+      <button onclick="closeTrophiesModal()" class="w-full bg-gray-800 hover:bg-gray-700 text-gray-200 font-bold py-2.5 rounded-xl text-xs">Chiudi</button>
+    </div>
+  </div>
+
   <!-- CONTENUTO PRINCIPALE -->
   <main class="p-4 space-y-6">
     <div class="relative rounded-2xl overflow-hidden border border-gray-800 bg-gray-900 shadow-2xl">
-      <!-- VIDEO IN AUTOPLAY FORZATO -->
       <video id="banner-video" class="w-full h-48 object-cover" autoplay loop muted playsinline webkit-playsinline preload="auto" src="https://files.catbox.moe/2a9rqy.mov"></video>
       <div class="absolute inset-0 bg-gradient-to-t from-[#121212] via-black/40 to-transparent"></div>
       <div class="absolute bottom-3 left-4 right-4">
@@ -117,10 +137,14 @@
       </div>
     </div>
 
-    <div class="grid grid-cols-1 gap-3">
-      <button onclick="scrollToProducts()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-black font-extrabold py-3.5 px-4 rounded-xl flex items-center justify-center space-x-2 shadow-lg shadow-emerald-500/20">
-        <i data-lucide="shopping-bag" class="w-5 h-5"></i>
-        <span>Sfoglia i prodotti</span>
+    <div class="grid grid-cols-2 gap-3">
+      <button onclick="scrollToProducts()" class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-black font-extrabold py-3.5 px-3 rounded-xl flex items-center justify-center space-x-1.5 shadow-lg shadow-emerald-500/20 text-xs">
+        <i data-lucide="shopping-bag" class="w-4 h-4"></i>
+        <span>Sfoglia prodotti</span>
+      </button>
+      <button onclick="openTrophiesModal()" class="bg-gray-800 hover:bg-gray-700 border border-amber-500/30 text-amber-300 font-extrabold py-3.5 px-3 rounded-xl flex items-center justify-center space-x-1.5 text-xs">
+        <i data-lucide="award" class="w-4 h-4 text-amber-400"></i>
+        <span>I miei trofei</span>
       </button>
     </div>
 
@@ -147,7 +171,6 @@
     let allProducts = [];
     let cart = [];
 
-    // Forza la riproduzione automatica del video banner
     document.addEventListener("DOMContentLoaded", () => {
       const vid = document.getElementById("banner-video");
       if (vid) {
@@ -169,15 +192,62 @@
       document.getElementById('products-section').scrollIntoView({ behavior: 'smooth' });
     }
 
+    async function openTrophiesModal() {
+      document.getElementById('trophies-modal').classList.remove('hidden');
+      const userId = tg?.initDataUnsafe?.user?.id || 0;
+      
+      if (!userId || !db) {
+        document.getElementById('user-points-val').innerText = "50";
+        document.getElementById('user-trophies-list').innerHTML = `<div class="bg-gray-800/60 p-2.5 rounded-lg text-xs text-center text-gray-300">🥇 Cliente Benvenuto</div>`;
+        return;
+      }
+
+      try {
+        const { data, error } = await db.from('users').select('*').eq('telegram_id', userId);
+        if (error || !data || data.length === 0) {
+          document.getElementById('user-points-val').innerText = "50";
+          document.getElementById('user-trophies-list').innerHTML = `<div class="bg-gray-800/60 p-2.5 rounded-lg text-xs text-center text-gray-300">🥇 Cliente Benvenuto</div>`;
+          return;
+        }
+
+        const user = data[0];
+        document.getElementById('user-points-val').innerText = user.points || 0;
+
+        let trophies = user.trophies || [];
+        if (typeof trophies === 'string') {
+          try { trophies = JSON.parse(trophies); } catch(e) { trophies = []; }
+        }
+
+        if (!trophies || trophies.length === 0) {
+          document.getElementById('user-trophies-list').innerHTML = `<div class="text-xs text-gray-500 text-center py-3">Nessun trofeo speciale sbloccato al momento.</div>`;
+        } else {
+          document.getElementById('user-trophies-list').innerHTML = trophies.map(t => `
+            <div class="bg-gray-800/80 border border-gray-700 p-2.5 rounded-xl text-xs font-bold text-amber-300 flex items-center space-x-2">
+              <i data-lucide="trophy" class="w-4 h-4 text-amber-400"></i>
+              <span>${t}</span>
+            </div>
+          `).join('');
+          lucide.createIcons();
+        }
+      } catch(e) {
+        console.error(e);
+      }
+    }
+
+    function closeTrophiesModal() {
+      document.getElementById('trophies-modal').classList.add('hidden');
+    }
+
     async function loadProducts() {
       const container = document.getElementById('products-grid');
       try {
         if (!db) throw new Error("Supabase client non inizializzato");
         
-        const { data, error } = await db.from('products').select('*');
+        // Carica SOLO i prodotti con in_showcase = true
+        const { data, error } = await db.from('products').select('*').eq('in_showcase', true);
         if (error) throw error;
         
-        allProducts = data || [];
+        allProducts = (data || []).filter(p => p.in_showcase !== false);
         document.getElementById('stat-products').innerText = allProducts.length;
         renderProducts(allProducts);
       } catch (err) {
