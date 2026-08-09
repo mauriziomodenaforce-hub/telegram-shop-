@@ -116,12 +116,17 @@ def db_update_user_points(target_id, points_delta):
         print(f"Errore punti: {e}")
     return False, 0
 
-# --- SERVER API ED ORDINI ---
+# --- SERVER API ED ORDINI (CON GESTIONE HEAD) ---
 class HealthCheckHandler(BaseHTTPRequestHandler):
+    def do_HEAD(self):
+        self.send_response(200)
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.end_headers()
+
     def do_OPTIONS(self):
         self.send_response(200)
         self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
+        self.send_header('Access-Control-Allow-Methods', 'POST, GET, OPTIONS, HEAD')
         self.send_header('Access-Control-Allow-Headers', 'Content-Type')
         self.end_headers()
 
@@ -145,10 +150,10 @@ class HealthCheckHandler(BaseHTTPRequestHandler):
             order_id = db_save_order(user_id, username, cart, total)
 
             # Notifica all'Utente
-            if user_id:
+            if user_id and str(user_id) != "0":
                 try:
                     bot.send_message(
-                        user_id,
+                        int(user_id),
                         f"🎉 **Ordine #{order_id} Inviato con Successo!**\n\n"
                         f"Totale: **€{total}**\n"
                         "Un operatore prenderà in carico la tua richiesta a breve."
@@ -439,8 +444,5 @@ def handle_admin_text(message):
         user_states.pop(user_id, None)
 
 print("🤖 Avvio Bot Admin in corso...")
-bot.remove_webhook()
-bot.infinity_polling(skip_pending=True)
-
 bot.remove_webhook()
 bot.infinity_polling(skip_pending=True)
