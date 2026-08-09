@@ -86,7 +86,7 @@
       </nav>
     </div>
     <div class="border-t border-gray-800 pt-4 text-xs text-center text-gray-500">
-      v1.35.0 • Boston George 420
+      v1.36.0 • Boston George 420
     </div>
   </aside>
 
@@ -118,7 +118,7 @@
     </div>
   </div>
 
-  <!-- PANNELLO DI CONFERMA ORDINO INVIATO (STILE IMMAGINE) -->
+  <!-- PANNELLO DI CONFERMA ORDINE INVIATO -->
   <div id="success-panel-modal" class="fixed inset-0 bg-[#dbeafe] z-50 flex flex-col items-center justify-center p-6 text-center hidden">
     <div class="w-20 h-20 bg-emerald-500 rounded-2xl flex items-center justify-center mb-6 shadow-xl">
       <i data-lucide="check" class="w-12 h-12 text-white stroke-[3]"></i>
@@ -217,7 +217,9 @@
   </div>
 
   <!-- CONTENUTO PRINCIPALE -->
-  <main class="p-4 space-y-6">
+  <main class="p-4 space-y-5">
+    
+    <!-- BANNER CON VIDEO E METADATI -->
     <div class="relative rounded-2xl overflow-hidden border border-gray-800 bg-gray-900 shadow-2xl">
       <video id="banner-video" class="w-full h-48 object-cover" autoplay loop muted playsinline webkit-playsinline preload="auto" src="https://files.catbox.moe/2a9rqy.mov"></video>
       <div class="absolute inset-0 bg-gradient-to-t from-[#121212] via-black/40 to-transparent"></div>
@@ -225,26 +227,49 @@
         <h1 class="text-2xl font-black text-white tracking-wide">Boston George 420</h1>
         <div class="flex items-center space-x-3 text-xs text-gray-300 mt-1">
           <span class="flex items-center"><i data-lucide="package" class="w-3.5 h-3.5 mr-1 text-emerald-400"></i> <span id="stat-products">--</span> Prodotti</span>
+          <span class="flex items-center"><i data-lucide="grid" class="w-3.5 h-3.5 mr-1 text-blue-400"></i> 7 Categorie</span>
           <span class="flex items-center text-amber-400">★ 5.0 (600+)</span>
         </div>
       </div>
     </div>
 
-    <!-- BARRA CATEGORIE SEPARATE: SHIP VS MEET UP -->
-    <div class="space-y-3" id="products-section">
+    <!-- SCHEDA BENVERNUTO -->
+    <div class="bg-gray-900/80 border border-gray-800 rounded-2xl p-4 space-y-2 text-sm text-gray-300 shadow-md">
+      <p class="font-bold text-white">👋 Benvenuto nello shop di Boston George 420!</p>
+      <p class="text-xs text-gray-400">📦 Tutti i prodotti in pronta consegna con spedizioni riservate o ritrovo sul posto.</p>
+      <div class="flex flex-wrap gap-2 pt-1 text-[11px]">
+        <span class="bg-gray-800 px-2.5 py-1 rounded-md text-emerald-400 font-medium">🚢 Spedizioni (Ship)</span>
+        <span class="bg-gray-800 px-2.5 py-1 rounded-md text-amber-400 font-medium">🤝 Consegne a Mano (Meet Up)</span>
+      </div>
+    </div>
+
+    <!-- PULSANTI AZIONE RAPIDA -->
+    <div class="grid grid-cols-2 gap-3">
+      <button onclick="scrollToProducts()" class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-black font-extrabold py-3.5 px-3 rounded-xl flex items-center justify-center space-x-1.5 shadow-lg shadow-emerald-500/20 text-xs">
+        <i data-lucide="shopping-bag" class="w-4 h-4"></i>
+        <span>Sfoglia prodotti</span>
+      </button>
+      <button onclick="openTrophiesModal()" class="bg-gray-800 hover:bg-gray-700 border border-amber-500/30 text-amber-300 font-extrabold py-3.5 px-3 rounded-xl flex items-center justify-center space-x-1.5 text-xs">
+        <i data-lucide="award" class="w-4 h-4 text-amber-400"></i>
+        <span>I miei trofei</span>
+      </button>
+    </div>
+
+    <!-- SEZIONE CATEGORIE E CATALOGO -->
+    <div class="space-y-3 pt-2" id="products-section">
       <div class="flex justify-between items-center">
         <h2 class="text-lg font-bold text-white tracking-wide">Catalogo Prodotti</h2>
       </div>
       
       <div class="flex space-x-2 overflow-x-auto hide-scrollbar pb-1">
-        <button onclick="filterCategory('ALL')" class="cat-btn px-3.5 py-2 rounded-xl bg-emerald-500 text-black text-xs font-bold whitespace-nowrap">Tutti</button>
-        <button onclick="filterCategory('🇮🇹 Italia (Ship)')" class="cat-btn px-3.5 py-2 rounded-xl bg-gray-800 text-gray-300 text-xs font-medium whitespace-nowrap">🇮🇹 Italia (Ship)</button>
-        <button onclick="filterCategory('🇪🇸 Spagna (Ship)')" class="cat-btn px-3.5 py-2 rounded-xl bg-gray-800 text-gray-300 text-xs font-medium whitespace-nowrap">🇪🇸 Spagna (Ship)</button>
-        <button onclick="filterCategory('🇳🇱 Olanda (Ship)')" class="cat-btn px-3.5 py-2 rounded-xl bg-gray-800 text-gray-300 text-xs font-medium whitespace-nowrap">🇳🇱 Olanda (Ship)</button>
-        <button onclick="filterCategory('🇺🇸 USA (Ship)')" class="cat-btn px-3.5 py-2 rounded-xl bg-gray-800 text-gray-300 text-xs font-medium whitespace-nowrap">🇺🇸 USA (Ship)</button>
-        <button onclick="filterCategory('🤝 Umbria (Meet Up)')" class="cat-btn px-3.5 py-2 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-bold whitespace-nowrap">🤝 Umbria (Meet Up)</button>
-        <button onclick="filterCategory('🤝 Roma (Meet Up)')" class="cat-btn px-3.5 py-2 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-bold whitespace-nowrap">🤝 Roma (Meet Up)</button>
-        <button onclick="filterCategory('🤝 Spagna (Meet Up)')" class="cat-btn px-3.5 py-2 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-bold whitespace-nowrap">🤝 Spagna (Meet Up)</button>
+        <button onclick="filterCategory('ALL', this)" class="cat-btn px-3.5 py-2 rounded-xl bg-emerald-500 text-black text-xs font-bold whitespace-nowrap">Tutti</button>
+        <button onclick="filterCategory('🇮🇹 Italia (Ship)', this)" class="cat-btn px-3.5 py-2 rounded-xl bg-gray-800 text-gray-300 text-xs font-medium whitespace-nowrap">🇮🇹 Italia (Ship)</button>
+        <button onclick="filterCategory('🇪🇸 Spagna (Ship)', this)" class="cat-btn px-3.5 py-2 rounded-xl bg-gray-800 text-gray-300 text-xs font-medium whitespace-nowrap">🇪🇸 Spagna (Ship)</button>
+        <button onclick="filterCategory('🇳🇱 Olanda (Ship)', this)" class="cat-btn px-3.5 py-2 rounded-xl bg-gray-800 text-gray-300 text-xs font-medium whitespace-nowrap">🇳🇱 Olanda (Ship)</button>
+        <button onclick="filterCategory('🇺🇸 USA (Ship)', this)" class="cat-btn px-3.5 py-2 rounded-xl bg-gray-800 text-gray-300 text-xs font-medium whitespace-nowrap">🇺🇸 USA (Ship)</button>
+        <button onclick="filterCategory('🤝 Umbria (Meet Up)', this)" class="cat-btn px-3.5 py-2 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-bold whitespace-nowrap">🤝 Umbria (Meet Up)</button>
+        <button onclick="filterCategory('🤝 Roma (Meet Up)', this)" class="cat-btn px-3.5 py-2 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-bold whitespace-nowrap">🤝 Roma (Meet Up)</button>
+        <button onclick="filterCategory('🤝 Spagna (Meet Up)', this)" class="cat-btn px-3.5 py-2 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-bold whitespace-nowrap">🤝 Spagna (Meet Up)</button>
       </div>
     </div>
 
@@ -534,16 +559,32 @@
       lucide.createIcons();
     }
 
-    function filterCategory(cat) {
-      document.querySelectorAll('.cat-btn').forEach(btn => {
-        btn.classList.remove('bg-emerald-500', 'text-black');
-        btn.classList.add('bg-gray-800', 'text-gray-300');
+    function filterCategory(cat, btn) {
+      document.querySelectorAll('.cat-btn').forEach(b => {
+        b.classList.remove('bg-emerald-500', 'text-black');
+        b.classList.add('bg-gray-800', 'text-gray-300');
       });
-      event.target.classList.remove('bg-gray-800', 'text-gray-300');
-      event.target.classList.add('bg-emerald-500', 'text-black');
+      if (btn) {
+        btn.classList.remove('bg-gray-800', 'text-gray-300');
+        btn.classList.add('bg-emerald-500', 'text-black');
+      }
 
-      if (cat === 'ALL') renderProducts(allProducts);
-      else renderProducts(allProducts.filter(p => p.category === cat));
+      if (cat === 'ALL') {
+        renderProducts(allProducts);
+      } else {
+        renderProducts(allProducts.filter(p => {
+          if (!p.category) return false;
+          if (p.category === cat) return true;
+          // Match Flessibile per prodotti salvati con nomi precedenti
+          if (cat.includes('Italia') && p.category.includes('Italia')) return true;
+          if (cat.includes('Spagna') && p.category.includes('Spagna') && !cat.includes('Meet Up')) return true;
+          if (cat.includes('Olanda') && p.category.includes('Olanda')) return true;
+          if (cat.includes('USA') && p.category.includes('USA')) return true;
+          if (cat.includes('Umbria') && p.category.includes('Umbria')) return true;
+          if (cat.includes('Roma') && p.category.includes('Roma')) return true;
+          return false;
+        }));
+      }
     }
 
     function addToCart(name, qty, price) {
