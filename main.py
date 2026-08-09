@@ -388,8 +388,8 @@ def handle_callbacks(call):
             "🇪🇸 Spagna (Ship)",
             "🇳🇱 Olanda (Ship)",
             "🇺🇸 USA (Ship)",
-            "🤝 Umbria (Meet Up)",
-            "🤝 Roma (Meet Up)"
+            "🤝 Roma (Meet Up)",
+            "🤝 Fondi (Meet Up)"
         ]
         btns = [types.InlineKeyboardButton(c, callback_data=f"addcat_{c}") for c in cats]
         markup.add(*btns)
