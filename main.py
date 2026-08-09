@@ -321,7 +321,7 @@ def handle_callbacks(call):
             bot.send_message(user_id, "📭 Nessun ordine presente nello storico.", reply_markup=nav_markup)
             return
 
-        bot.send_message(user_id, f"📜 **STORICO COMPLETO ORDINI ({len(orders)} totali):**", parse_mode='Markdown')
+        bot.send_message(user_id, f"📜 STORICO COMPLETO ORDINI ({len(orders)} totali):")
         
         status_map = {
             "PENDING": "⏳ In Attesa",
@@ -341,12 +341,12 @@ def handle_callbacks(call):
             tracking = o.get('tracking_code') or "Non inserito"
 
             card_msg = (
-                f"🛒 **ORDINE #{o.get('id')}**\n"
-                f"👤 Utente: @{o.get('username')} (`{o.get('user_id')}`)\n"
+                f"🛒 ORDINE #{o.get('id')}\n"
+                f"👤 Utente: @{o.get('username')} (ID: {o.get('user_id')})\n"
                 f"📌 Stato: {st}\n"
-                f"🚚 Tracking: `{tracking}`\n\n"
-                f"📦 **Prodotti:**\n{items_str}\n\n"
-                f"💰 **Totale:** €{o.get('total_price')}"
+                f"🚚 Tracking: {tracking}\n\n"
+                f"📦 Prodotti:\n{items_str}\n\n"
+                f"💰 Totale: €{o.get('total_price')}"
             )
 
             markup = types.InlineKeyboardMarkup(row_width=2)
@@ -355,7 +355,10 @@ def handle_callbacks(call):
                 types.InlineKeyboardButton("❌ Annulla", callback_data=f"ord_cnc_{o['id']}_{o.get('user_id')}"),
                 types.InlineKeyboardButton("🚚 Invia Tracking", callback_data=f"ord_trk_{o['id']}_{o.get('user_id')}")
             )
-            bot.send_message(user_id, card_msg, parse_mode='Markdown', reply_markup=markup)
+            try:
+                bot.send_message(user_id, card_msg, reply_markup=markup)
+            except Exception as e:
+                print(f"Errore invio scheda ordine: {e}")
 
         nav_markup = types.InlineKeyboardMarkup(row_width=1)
         nav_markup.add(types.InlineKeyboardButton("🏠 Menu Principale", callback_data="m_main"))
@@ -364,10 +367,10 @@ def handle_callbacks(call):
     elif data == "m_pts":
         msg = (
             "🏆 GESTIONE PUNTI & TROFEI UTENTE\n\n"
-            "• Assegna Punti:\n`/punti ID_UTENTE QUANTITA`\n*(Es: `/punti 12345678 100`)*\n\n"
-            "• Assegna Trofeo:\n`/trofeo ID_UTENTE NOME_TROFEO`\n*(Es: `/trofeo 12345678 🥇 Cliente VIP`)*"
+            "• Assegna Punti:\n/punti ID_UTENTE QUANTITA\n(Es: /punti 12345678 100)\n\n"
+            "• Assegna Trofeo:\n/trofeo ID_UTENTE NOME_TROFEO\n(Es: /trofeo 12345678 🥇 Cliente VIP)"
         )
-        bot.send_message(user_id, msg, parse_mode='Markdown', reply_markup=get_cancel_keyboard())
+        bot.send_message(user_id, msg, reply_markup=get_cancel_keyboard())
 
     elif data == "p_add":
         markup = types.InlineKeyboardMarkup(row_width=2)
@@ -476,7 +479,7 @@ def handle_callbacks(call):
                     new_lines.append(line)
             new_text = "\n".join(new_lines)
             try:
-                bot.edit_message_text(new_text, user_id, call.message.message_id, reply_markup=call.message.reply_markup, parse_mode='Markdown')
+                bot.edit_message_text(new_text, user_id, call.message.message_id, reply_markup=call.message.reply_markup)
             except Exception:
                 pass
 
@@ -502,7 +505,7 @@ def handle_callbacks(call):
                     new_lines.append(line)
             new_text = "\n".join(new_lines)
             try:
-                bot.edit_message_text(new_text, user_id, call.message.message_id, reply_markup=call.message.reply_markup, parse_mode='Markdown')
+                bot.edit_message_text(new_text, user_id, call.message.message_id, reply_markup=call.message.reply_markup)
             except Exception:
                 pass
 
@@ -564,7 +567,7 @@ def handle_admin_text(message):
             ok, trophies = db_add_user_trophy(target_id, trophy_name)
             if ok:
                 bot.reply_to(message, f"🏆 Trofeo Assegnato!\nUtente {target_id}: ha sbloccato il trofeo '{trophy_name}'!", reply_markup=get_admin_main_keyboard())
-                bot.send_message(target_id, f"🥇 **NUOVO TROFEO SBLOCCATO!**\n\nHai ricevuto il trofeo: **{trophy_name}**!\nPuoi vederlo nella sezione punti della Web App.", parse_mode='Markdown')
+                bot.send_message(target_id, f"🥇 NEW TROPHY UNLOCKED!\n\nHai ricevuto il trofeo: {trophy_name}!\nPuoi vederlo nella sezione punti della Web App.")
             else:
                 bot.reply_to(message, "❌ Utente non trovato nel database.", reply_markup=get_admin_main_keyboard())
         except Exception:
