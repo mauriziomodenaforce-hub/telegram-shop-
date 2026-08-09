@@ -77,6 +77,9 @@
         <a href="#" onclick="openTrophiesModal(); toggleDrawer();" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-gray-300 hover:bg-gray-800 transition">
           <i data-lucide="zap" class="w-5 h-5 text-amber-400"></i><span>I miei punti e trofei</span>
         </a>
+        <a href="#" onclick="openTrackingModal(); toggleDrawer();" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-gray-300 hover:bg-gray-800 transition">
+          <i data-lucide="truck" class="w-5 h-5 text-blue-400"></i><span>Tracking Ordini</span>
+        </a>
         <a href="#" onclick="alert('Supporto attivo via Bot Telegram!'); toggleDrawer();" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-gray-300 hover:bg-gray-800 transition">
           <i data-lucide="headphones" class="w-5 h-5"></i><span>Contatti</span>
         </a>
@@ -108,6 +111,30 @@
       </div>
 
       <button onclick="closeTrophiesModal()" class="w-full bg-gray-800 hover:bg-gray-700 text-gray-200 font-bold py-2.5 rounded-xl text-xs">Chiudi</button>
+    </div>
+  </div>
+
+  <!-- MODALE TRACKING ORDINI -->
+  <div id="tracking-modal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 hidden backdrop-blur-md">
+    <div class="bg-[#181818] border border-gray-800 rounded-2xl w-full max-w-sm p-5 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center border-b border-gray-800 pb-3">
+        <h3 class="font-bold text-lg text-white flex items-center"><i data-lucide="truck" class="w-5 h-5 text-blue-400 mr-2"></i> Tracking Ordine</h3>
+        <button onclick="closeTrackingModal()" class="text-gray-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      
+      <div class="space-y-3">
+        <label class="text-xs font-semibold text-gray-400 uppercase tracking-wider block">Inserisci Numero Ordine</label>
+        <div class="flex space-x-2">
+          <input type="number" id="tracking-order-id" placeholder="Es. 1" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+          <button onclick="searchOrderTracking()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-2 rounded-xl text-xs">Cerca</button>
+        </div>
+      </div>
+
+      <div id="tracking-result" class="hidden border-t border-gray-800 pt-3 space-y-2">
+        <!-- Risultati caricati via JS -->
+      </div>
+
+      <button onclick="closeTrackingModal()" class="w-full bg-gray-800 hover:bg-gray-700 text-gray-200 font-bold py-2.5 rounded-xl text-xs">Chiudi</button>
     </div>
   </div>
 
@@ -238,12 +265,63 @@
       document.getElementById('trophies-modal').classList.add('hidden');
     }
 
+    function openTrackingModal() {
+      document.getElementById('tracking-modal').classList.remove('hidden');
+    }
+
+    function closeTrackingModal() {
+      document.getElementById('tracking-modal').classList.add('hidden');
+      document.getElementById('tracking-result').classList.add('hidden');
+    }
+
+    async function searchOrderTracking() {
+      const orderId = document.getElementById('tracking-order-id').value.trim();
+      const resContainer = document.getElementById('tracking-result');
+      if (!orderId) {
+        alert("Inserisci un numero d'ordine valido!");
+        return;
+      }
+
+      resContainer.innerHTML = `<div class="text-xs text-gray-400 text-center py-2">Ricerca in corso...</div>`;
+      resContainer.classList.remove('hidden');
+
+      try {
+        const { data, error } = await db.from('orders').select('*').eq('id', orderId);
+        if (error || !data || data.length === 0) {
+          resContainer.innerHTML = `<div class="text-xs text-red-400 text-center py-2">Ordine #${orderId} non trovato.</div>`;
+          return;
+        }
+
+        const o = data[0];
+        const statusMap = {
+          "PENDING": "⏳ In Attesa",
+          "ACCEPTED": "✅ Confermato",
+          "SHIPPED": "🚚 Spedito",
+          "CANCELLED": "❌ Annullato"
+        };
+
+        resContainer.innerHTML = `
+          <div class="bg-gray-900 border border-gray-800 p-3 rounded-xl text-xs space-y-1.5">
+            <div class="flex justify-between font-bold">
+              <span class="text-white">Ordine #${o.id}</span>
+              <span class="text-emerald-400">${statusMap[o.status] || o.status}</span>
+            </div>
+            <div class="text-gray-400">Totale: €${o.total_price}</div>
+            <div class="text-gray-300 font-mono bg-gray-800 p-2 rounded-lg mt-2">
+              <b>Tracking Code:</b><br>${o.tracking_code || 'In attesa di spedizione'}
+            </div>
+          </div>
+        `;
+      } catch(e) {
+        resContainer.innerHTML = `<div class="text-xs text-red-400 text-center py-2">Errore durante la ricerca.</div>`;
+      }
+    }
+
     async function loadProducts() {
       const container = document.getElementById('products-grid');
       try {
         if (!db) throw new Error("Supabase client non inizializzato");
         
-        // Carica SOLO i prodotti con in_showcase = true
         const { data, error } = await db.from('products').select('*').eq('in_showcase', true);
         if (error) throw error;
         
