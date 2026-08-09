@@ -75,13 +75,14 @@ def db_delete_product(prod_id):
     except Exception:
         return False
 
-def db_save_order(user_id, username, cart, total):
+def db_save_order(user_id, username, cart, total, address):
     url = f"{SUPABASE_URL}/rest/v1/orders"
     data = {
         "user_id": user_id,
         "username": username or "Anonimo",
         "items": cart,
         "total_price": total,
+        "address": address,
         "status": "PENDING"
     }
     try:
@@ -173,24 +174,32 @@ class HealthCheckHandler(BaseHTTPRequestHandler):
             total = data.get("total", 0)
             user_id = data.get("user_id")
             username = data.get("username", "Anonimo")
+            address = data.get("address", "Non specificato")
 
-            order_id = db_save_order(user_id, username, cart, total)
+            order_id = db_save_order(user_id, username, cart, total, address)
+
+            items_text = "\n".join([f"• {i['qty']}x {i['name']} - €{i['price']}" for i in cart])
+
+            # Messaggio Cliente (Stile Immagine 2)
+            user_msg = (
+                f"✅ Richiesta #{order_id} inviata al negozio!\n\n"
+                f"{items_text}\n"
+                f"📍 Indirizzo / Ritrovo: {address}\n"
+                f"Totale indicativo: €{total}\n\n"
+                "Un operatore prenderà in carico la tua richiesta a breve."
+            )
 
             if user_id and str(user_id) != "0":
                 try:
-                    bot.send_message(
-                        int(user_id),
-                        f"🎉 Ordine #{order_id} Inviato con Successo!\n\n"
-                        f"Totale: €{total}\n"
-                        "Un operatore prenderà in carico la tua richiesta a breve."
-                    )
+                    bot.send_message(int(user_id), user_msg)
                 except Exception as e:
                     print(f"Errore notifica utente: {e}")
 
-            items_text = "\n".join([f"• {i['name']} ({i['qty']}) - €{i['price']}" for i in cart])
+            # Messaggio Admin
             admin_msg = (
                 f"🚨 NUOVO ORDINE RICEVUTO! #{order_id}\n\n"
                 f"👤 Utente: @{username} (ID: {user_id})\n"
+                f"📍 Indirizzo / Ritrovo: {address}\n\n"
                 f"📦 Prodotti:\n{items_text}\n\n"
                 f"💰 Totale: €{total}"
             )
@@ -339,10 +348,12 @@ def handle_callbacks(call):
             
             items_str = "\n".join([f"  • {i['name']} ({i['qty']}) - €{i['price']}" for i in items]) if items else "  • Nessun dettaglio"
             tracking = o.get('tracking_code') or "Non inserito"
+            addr = o.get('address') or "Non specificato"
 
             card_msg = (
                 f"🛒 ORDINE #{o.get('id')}\n"
                 f"👤 Utente: @{o.get('username')} (ID: {o.get('user_id')})\n"
+                f"📍 Indirizzo / Ritrovo: {addr}\n"
                 f"📌 Stato: {st}\n"
                 f"🚚 Tracking: {tracking}\n\n"
                 f"📦 Prodotti:\n{items_str}\n\n"
@@ -373,8 +384,16 @@ def handle_callbacks(call):
         bot.send_message(user_id, msg, reply_markup=get_cancel_keyboard())
 
     elif data == "p_add":
-        markup = types.InlineKeyboardMarkup(row_width=2)
-        cats = ["🇮🇹 Italia", "🇪🇸 Spagna", "🇳🇱 Olanda", "🇺🇸 USA"]
+        markup = types.InlineKeyboardMarkup(row_width=1)
+        cats = [
+            "🇮🇹 Italia (Ship)",
+            "🇪🇸 Spagna (Ship)",
+            "🇳🇱 Olanda (Ship)",
+            "🇺🇸 USA (Ship)",
+            "🤝 Umbria (Meet Up)",
+            "🤝 Roma (Meet Up)",
+            "🤝 Spagna (Meet Up)"
+        ]
         btns = [types.InlineKeyboardButton(c, callback_data=f"addcat_{c}") for c in cats]
         markup.add(*btns)
         markup.add(types.InlineKeyboardButton("🔙 Torna al Menu Principale", callback_data="m_main"))
