@@ -445,9 +445,3 @@ def handle_admin_text(message):
 print("🤖 Avvio Bot Admin in corso...")
 bot.remove_webhook()
 bot.infinity_polling(skip_pending=True)
-
-        user_states.pop(user_id, None)
-
-print("🤖 Avvio Bot Admin in corso...")
-bot.remove_webhook()
-bot.infinity_polling(skip_pending=True)
