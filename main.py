@@ -180,7 +180,6 @@ class HealthCheckHandler(BaseHTTPRequestHandler):
 
             items_text = "\n".join([f"• {i['qty']}x {i['name']} - €{i['price']}" for i in cart])
 
-            # Messaggio Cliente (Stile Immagine 2)
             user_msg = (
                 f"✅ Richiesta #{order_id} inviata al negozio!\n\n"
                 f"{items_text}\n"
@@ -195,7 +194,6 @@ class HealthCheckHandler(BaseHTTPRequestHandler):
                 except Exception as e:
                     print(f"Errore notifica utente: {e}")
 
-            # Messaggio Admin
             admin_msg = (
                 f"🚨 NUOVO ORDINE RICEVUTO! #{order_id}\n\n"
                 f"👤 Utente: @{username} (ID: {user_id})\n"
@@ -391,8 +389,7 @@ def handle_callbacks(call):
             "🇳🇱 Olanda (Ship)",
             "🇺🇸 USA (Ship)",
             "🤝 Umbria (Meet Up)",
-            "🤝 Roma (Meet Up)",
-            "🤝 Spagna (Meet Up)"
+            "🤝 Roma (Meet Up)"
         ]
         btns = [types.InlineKeyboardButton(c, callback_data=f"addcat_{c}") for c in cats]
         markup.add(*btns)
