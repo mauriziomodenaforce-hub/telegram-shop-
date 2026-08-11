@@ -320,7 +320,7 @@
       </div>
     </div>
 
-    <!-- GRIGLIA ORIGINALE A SCHEDE GRANDI (1 Colonna) -->
+    <!-- GRIGLIA ORIGINALE A SCHEDE GRANDI -->
     <div id="products-grid" class="grid grid-cols-1 gap-4">
       <div class="text-center py-8 text-gray-500 text-sm">Caricamento prodotti in corso...</div>
     </div>
@@ -370,7 +370,7 @@
       }
     }
 
-    // --- RENDER SCHEDE GRANDI (STILE ORIGINALE) ---
+    // --- RENDER SCHEDE GRANDI (STILE ORIGINALE + CAROSELLO SCORREVOLE) ---
     function renderProducts(products) {
       const container = document.getElementById('products-grid');
       if (products.length === 0) {
@@ -394,20 +394,24 @@
         if (!media || media.length === 0) {
             media = [{ url: p.media_url, type: p.media_type || 'image' }];
         }
-        const firstMedia = media[0];
 
-        // Costruisci l'HTML della singola scheda
+        // Costruisci l'HTML della singola scheda con la tua formattazione e lo slider integrato
         return `
         <div class="bg-gray-900/90 border border-gray-800 rounded-2xl overflow-hidden shadow-lg">
           
-          <!-- Contenitore Immagine/Video Cliccabile (Apre Modale) -->
-          <div onclick="openProductModal('${p.id}')" class="cursor-pointer relative">
-            ${firstMedia.type === 'video' 
-              ? `<video class="w-full h-52 object-cover" autoplay loop muted playsinline src="${firstMedia.url}"></video>`
-              : `<img class="w-full h-52 object-cover" src="${firstMedia.url || 'https://images.unsplash.com/photo-1527661591475-527312dd65f5'}" />`}
-            
+          <!-- Contenitore Immagine/Video Scorrevole e Cliccabile -->
+          <div class="relative w-full h-52 bg-gray-800">
+            <div class="flex overflow-x-auto hide-scrollbar media-slider w-full h-full" style="-webkit-overflow-scrolling: touch;">
+              ${media.map(m => `
+                <div class="w-full h-full flex-shrink-0 media-item">
+                  ${m.type === 'video' 
+                    ? `<video onclick="openProductModal('${p.id}')" class="w-full h-full object-cover cursor-pointer" autoplay loop muted playsinline src="${m.url}"></video>`
+                    : `<img onclick="openProductModal('${p.id}')" class="w-full h-full object-cover cursor-pointer" src="${m.url || 'https://images.unsplash.com/photo-1527661591475-527312dd65f5'}" />`}
+                </div>
+              `).join('')}
+            </div>
             <!-- Etichetta se ci sono più foto -->
-            ${media.length > 1 ? `<div class="absolute bottom-2 right-2 bg-black/70 backdrop-blur-sm text-white text-[10px] px-2 py-0.5 rounded-full font-bold">+ Foto (Clicca)</div>` : ''}
+            ${media.length > 1 ? `<div class="absolute bottom-2 right-2 bg-black/70 backdrop-blur-sm text-white text-[10px] px-2.5 py-1 rounded-full font-bold pointer-events-none z-10 shadow-md">↔ Scorri (${media.length})</div>` : ''}
           </div>
           
           <div class="p-4 space-y-3">
@@ -447,7 +451,7 @@
         selectedVariantIndex = 0;
         currentQty = 1;
 
-        // 1. Costruisci lo Slider Media
+        // 1. Costruisci lo Slider Media per la Modale
         let media = currentProd.media_list;
         if(typeof media === 'string') try { media = JSON.parse(media); } catch(e) { media = []; }
         if(!media || media.length === 0) media = [{ url: currentProd.media_url, type: currentProd.media_type }];
@@ -737,7 +741,7 @@
       const resContainer = document.getElementById('tracking-result');
       
       if (!orderId) {
-          alert("Inserisci un numero d'ordine!");
+          alert("Inserisci un numero d'ordine!")
           return;
       }
       
