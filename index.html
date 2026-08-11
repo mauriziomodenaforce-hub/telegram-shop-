@@ -9,15 +9,13 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
-    body {
-      background-color: #121212;
-      color: #f3f4f6;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      user-select: none;
-    }
+    body { background-color: #121212; color: #f3f4f6; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; user-select: none; }
     .drawer { transition: transform 0.3s ease-in-out; }
     .hide-scrollbar::-webkit-scrollbar { display: none; }
     .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .media-slider { scroll-snap-type: x mandatory; }
+    .media-item { scroll-snap-align: center; }
+    .variant-selected { border-color: #10b981 !important; background-color: rgba(16, 185, 129, 0.1) !important; color: white !important; }
   </style>
 </head>
 <body class="pb-24">
@@ -25,14 +23,8 @@
   <script>
     const SUPABASE_URL = "https://hvjzhgixdgozpjqjeipf.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2anpoZ2l4ZGdvenBqcWplaXBmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYwOTg0ODcsImV4cCI6MjEwMTY3NDQ4N30.WsXI7PtlLM4xqffPyWcjZqxrC0nHGmjurIT0cSVNy6U";
-    
     let db;
-    try {
-      db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    } catch(e) {
-      console.error("Init Error:", e);
-    }
-    
+    try { db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch(e) {}
     const tg = window.Telegram?.WebApp;
     if (tg) tg.expand();
   </script>
@@ -48,549 +40,296 @@
         <i data-lucide="shopping-cart" class="w-5 h-5 text-gray-200"></i>
         <span id="cart-badge" class="absolute -top-1 -right-1 bg-emerald-500 text-black text-xs font-bold w-4 h-4 rounded-full flex items-center justify-center hidden">0</span>
       </button>
-      <button onclick="toggleDrawer()" class="p-2 rounded-lg bg-gray-800 hover:bg-gray-700">
-        <i data-lucide="menu" class="w-6 h-6 text-gray-200"></i>
-      </button>
     </div>
   </header>
 
-  <!-- MENU LATERALE -->
-  <div id="drawer-overlay" onclick="toggleDrawer()" class="fixed inset-0 bg-black/60 z-40 hidden backdrop-blur-sm"></div>
-  <aside id="drawer" class="fixed top-0 right-0 w-72 h-full bg-[#181818] z-50 transform translate-x-full drawer p-5 flex flex-col justify-between border-l border-gray-800">
-    <div>
-      <div class="flex justify-between items-center mb-6">
-        <span class="text-sm font-semibold text-gray-400 uppercase tracking-wider">Menu Navigazione</span>
-        <button onclick="toggleDrawer()" class="p-1 text-gray-400 hover:text-white">
-          <i data-lucide="x" class="w-6 h-6"></i>
-        </button>
-      </div>
-      <nav class="space-y-1">
-        <a href="#" onclick="toggleDrawer();" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl bg-emerald-500/10 text-emerald-400 font-medium">
-          <i data-lucide="home" class="w-5 h-5"></i><span>Home</span>
-        </a>
-        <a href="#" onclick="scrollToProducts(); toggleDrawer();" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-gray-300 hover:bg-gray-800 transition">
-          <i data-lucide="package" class="w-5 h-5"></i><span>Prodotti</span>
-        </a>
-        <a href="#" onclick="openCartModal(); toggleDrawer();" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-gray-300 hover:bg-gray-800 transition">
-          <i data-lucide="shopping-bag" class="w-5 h-5"></i><span>Carrello</span>
-        </a>
-        <a href="#" onclick="openTrophiesModal(); toggleDrawer();" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-gray-300 hover:bg-gray-800 transition">
-          <i data-lucide="zap" class="w-5 h-5 text-amber-400"></i><span>I miei punti e trofei</span>
-        </a>
-        <a href="#" onclick="openTrackingModal(); toggleDrawer();" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-gray-300 hover:bg-gray-800 transition">
-          <i data-lucide="truck" class="w-5 h-5 text-blue-400"></i><span>Tracking Ordini</span>
-        </a>
-        <a href="#" onclick="openSupportModal(); toggleDrawer();" class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-gray-300 hover:bg-gray-800 transition">
-          <i data-lucide="headphones" class="w-5 h-5 text-emerald-400"></i><span>Contatti</span>
-        </a>
-      </nav>
-    </div>
-    <div class="border-t border-gray-800 pt-4 text-xs text-center text-gray-500">
-      v1.39.0 • Boston George 420
-    </div>
-  </aside>
-
-  <!-- MODALE CARRELLO & DATI SPEDIZIONE -->
-  <div id="cart-modal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 hidden backdrop-blur-md">
-    <div class="bg-[#181818] border border-gray-800 rounded-2xl w-full max-w-sm p-5 space-y-4 shadow-2xl">
-      <div class="flex justify-between items-center border-b border-gray-800 pb-3">
-        <h3 class="font-bold text-lg text-white flex items-center"><i data-lucide="shopping-bag" class="w-5 h-5 text-emerald-400 mr-2"></i> Il tuo Carrello</h3>
-        <button onclick="closeCartModal()" class="text-gray-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
-      </div>
-
-      <div id="cart-items-list" class="space-y-2 max-h-40 overflow-y-auto pr-1"></div>
-
-      <div class="border-t border-gray-800 pt-3 space-y-3">
-        <div class="flex justify-between text-sm font-bold text-white">
-          <span>Totale:</span>
-          <span id="cart-total-price" class="text-emerald-400">€0</span>
-        </div>
-
-        <div>
-          <label class="text-xs font-semibold text-gray-400 uppercase tracking-wider block mb-1">Indirizzo di Spedizione / Punto Meet Up</label>
-          <textarea id="order-address-input" rows="2" placeholder="Inserisci indirizzo completo (Via, Città, CAP) o luogo di incontro..." class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"></textarea>
-        </div>
-
-        <button onclick="submitOrderProcess()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold py-3 rounded-xl text-xs uppercase tracking-wider shadow-lg shadow-emerald-500/20">
-          Invia Ordine
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- PANNELLO DI CONFERMA ORDINE INVIATO -->
-  <div id="success-panel-modal" class="fixed inset-0 bg-[#dbeafe] z-50 flex flex-col items-center justify-center p-6 text-center hidden">
-    <div class="w-20 h-20 bg-emerald-500 rounded-2xl flex items-center justify-center mb-6 shadow-xl">
-      <i data-lucide="check" class="w-12 h-12 text-white stroke-[3]"></i>
-    </div>
-    
-    <h2 class="text-2xl font-black text-slate-800 mb-2" id="success-order-title">Ordine #0 inviato!</h2>
-    <p class="text-slate-600 text-sm max-w-xs mb-8 leading-relaxed">
-      Il venditore è stato avvisato. Riceverai la conferma ed i dettagli direttamente nella chat del Bot.
-    </p>
-
-    <button onclick="closeSuccessPanel()" class="w-full max-w-xs bg-[#38bdf8] hover:bg-sky-500 text-white font-extrabold py-3.5 rounded-xl shadow-md text-sm transition">
-      Chiudi
-    </button>
-  </div>
-
-  <!-- MODALE PUNTI E TROFEI -->
-  <div id="trophies-modal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 hidden backdrop-blur-md">
-    <div class="bg-[#181818] border border-gray-800 rounded-2xl w-full max-w-sm p-5 space-y-4 shadow-2xl">
-      <div class="flex justify-between items-center border-b border-gray-800 pb-3">
-        <h3 class="font-bold text-lg text-white flex items-center"><i data-lucide="award" class="w-5 h-5 text-amber-400 mr-2"></i> Punti & Trofei</h3>
-        <button onclick="closeTrophiesModal()" class="text-gray-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
-      </div>
-      
-      <div class="bg-gradient-to-r from-amber-500/10 to-yellow-500/10 border border-amber-500/20 rounded-xl p-4 text-center">
-        <span class="text-xs uppercase text-amber-400 font-bold tracking-wider">Saldo Punti</span>
-        <div class="text-3xl font-black text-amber-300 mt-1" id="user-points-val">--</div>
-      </div>
-
-      <div class="space-y-2">
-        <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Bacheca Trofei</span>
-        <div id="user-trophies-list" class="space-y-2 max-h-48 overflow-y-auto pr-1">
-          <div class="text-xs text-gray-500 text-center py-4">Caricamento in corso...</div>
-        </div>
-      </div>
-
-      <button onclick="closeTrophiesModal()" class="w-full bg-gray-800 hover:bg-gray-700 text-gray-200 font-bold py-2.5 rounded-xl text-xs">Chiudi</button>
-    </div>
-  </div>
-
-  <!-- MODALE TRACKING ORDINI -->
-  <div id="tracking-modal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 hidden backdrop-blur-md">
-    <div class="bg-[#181818] border border-gray-800 rounded-2xl w-full max-w-sm p-5 space-y-4 shadow-2xl">
-      <div class="flex justify-between items-center border-b border-gray-800 pb-3">
-        <h3 class="font-bold text-lg text-white flex items-center"><i data-lucide="truck" class="w-5 h-5 text-blue-400 mr-2"></i> Tracking Ordine</h3>
-        <button onclick="closeTrackingModal()" class="text-gray-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
-      </div>
-      
-      <div class="space-y-3">
-        <label class="text-xs font-semibold text-gray-400 uppercase tracking-wider block">Inserisci Numero Ordine</label>
-        <div class="flex space-x-2">
-          <input type="number" id="tracking-order-id" placeholder="Es. 1" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
-          <button onclick="searchOrderTracking()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-2 rounded-xl text-xs">Cerca</button>
-        </div>
-      </div>
-
-      <div id="tracking-result" class="hidden border-t border-gray-800 pt-3 space-y-2"></div>
-
-      <button onclick="closeTrackingModal()" class="w-full bg-gray-800 hover:bg-gray-700 text-gray-200 font-bold py-2.5 rounded-xl text-xs">Chiudi</button>
-    </div>
-  </div>
-
-  <!-- MODALE CONTATTI -->
-  <div id="support-modal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 hidden backdrop-blur-md">
-    <div class="bg-[#181818] border border-gray-800 rounded-2xl w-full max-w-sm p-5 space-y-4 shadow-2xl">
-      <div class="flex justify-between items-center border-b border-gray-800 pb-3">
-        <h3 class="font-bold text-lg text-white flex items-center">
-          <i data-lucide="headphones" class="w-5 h-5 text-emerald-400 mr-2"></i> Supporto & Assistenza
-        </h3>
-        <button onclick="closeSupportModal()" class="text-gray-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
-      </div>
-
-      <div class="space-y-3">
-        <div class="bg-gray-900 border border-gray-800 rounded-xl p-3.5 flex items-center space-x-3">
-          <div class="p-2.5 bg-emerald-500/10 rounded-lg text-emerald-400">
-            <i data-lucide="clock" class="w-5 h-5"></i>
-          </div>
-          <div>
-            <span class="text-[11px] uppercase font-bold text-gray-400 block tracking-wider">Orari Assistenza</span>
-            <span class="text-sm font-bold text-white">Tutti i giorni: 9:00 - 0:00</span>
-          </div>
-        </div>
-
-        <div class="bg-gray-900 border border-gray-800 rounded-xl p-3.5 flex items-center space-x-3">
-          <div class="p-2.5 bg-blue-500/10 rounded-lg text-blue-400">
-            <i data-lucide="send" class="w-5 h-5"></i>
-          </div>
-          <div>
-            <span class="text-[11px] uppercase font-bold text-gray-400 block tracking-wider">Contatto Telegram</span>
-            <a href="https://t.me/bostongeorge_420" target="_blank" class="text-sm font-bold text-blue-400 hover:underline">@bostongeorge_420</a>
-          </div>
-        </div>
-      </div>
-
-      <button onclick="closeSupportModal()" class="w-full bg-gray-800 hover:bg-gray-700 text-gray-200 font-bold py-2.5 rounded-xl text-xs">Chiudi</button>
-    </div>
-  </div>
-
   <!-- CONTENUTO PRINCIPALE -->
   <main class="p-4 space-y-5">
-    
-    <!-- BANNER CON VIDEO E METADATI -->
-    <div class="relative rounded-2xl overflow-hidden border border-gray-800 bg-gray-900 shadow-2xl">
-      <video id="banner-video" class="w-full h-48 object-cover" autoplay loop muted playsinline webkit-playsinline preload="auto" src="https://files.catbox.moe/2a9rqy.mov"></video>
-      <div class="absolute inset-0 bg-gradient-to-t from-[#121212] via-black/40 to-transparent"></div>
-      <div class="absolute bottom-3 left-4 right-4">
-        <h1 class="text-2xl font-black text-white tracking-wide">Boston George 420</h1>
-        <div class="flex items-center space-x-3 text-xs text-gray-300 mt-1">
-          <span class="flex items-center"><i data-lucide="package" class="w-3.5 h-3.5 mr-1 text-emerald-400"></i> <span id="stat-products">--</span> Prodotti</span>
-          <span class="flex items-center"><i data-lucide="grid" class="w-3.5 h-3.5 mr-1 text-blue-400"></i> 6 Categorie</span>
-          <span class="flex items-center text-amber-400">★ 5.0 (600+)</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- SCHEDA BENVENUTO -->
-    <div class="bg-gray-900/80 border border-gray-800 rounded-2xl p-4 space-y-2 text-sm text-gray-300 shadow-md">
-      <p class="font-bold text-white">👋 Benvenuto nello shop di Boston George 420!</p>
-      <p class="text-xs text-gray-400">📦 Tutti i prodotti in pronta consegna con spedizioni riservate o ritrovo sul posto.</p>
-      <div class="flex flex-wrap gap-2 pt-1 text-[11px]">
-        <span class="bg-gray-800 px-2.5 py-1 rounded-md text-emerald-400 font-medium">🚢 Spedizioni (Ship)</span>
-        <span class="bg-gray-800 px-2.5 py-1 rounded-md text-amber-400 font-medium">🤝 Consegne a Mano (Meet Up)</span>
-      </div>
-    </div>
-
-    <!-- PULSANTI AZIONE RAPIDA -->
-    <div class="grid grid-cols-2 gap-3">
-      <button onclick="scrollToProducts()" class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-black font-extrabold py-3.5 px-3 rounded-xl flex items-center justify-center space-x-1.5 shadow-lg shadow-emerald-500/20 text-xs">
-        <i data-lucide="shopping-bag" class="w-4 h-4"></i>
-        <span>Sfoglia prodotti</span>
-      </button>
-      <button onclick="openTrophiesModal()" class="bg-gray-800 hover:bg-gray-700 border border-amber-500/30 text-amber-300 font-extrabold py-3.5 px-3 rounded-xl flex items-center justify-center space-x-1.5 text-xs">
-        <i data-lucide="award" class="w-4 h-4 text-amber-400"></i>
-        <span>I miei trofei</span>
-      </button>
-    </div>
-
-    <!-- SEZIONE CATEGORIE E CATALOGO -->
     <div class="space-y-3 pt-2" id="products-section">
       <div class="flex justify-between items-center">
         <h2 class="text-lg font-bold text-white tracking-wide">Catalogo Prodotti</h2>
       </div>
-      
+      <!-- CATEGORIE (Meet Up Per Prime) -->
       <div class="flex space-x-2 overflow-x-auto hide-scrollbar pb-1">
         <button onclick="filterCategory('ALL', this)" class="cat-btn px-3.5 py-2 rounded-xl bg-emerald-500 text-black text-xs font-bold whitespace-nowrap">Tutti</button>
+        <button onclick="filterCategory('🤝 Roma (Meet Up)', this)" class="cat-btn px-3.5 py-2 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-bold whitespace-nowrap">🤝 Roma (Meet Up)</button>
+        <button onclick="filterCategory('🤝 Fondi (Meet Up)', this)" class="cat-btn px-3.5 py-2 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-bold whitespace-nowrap">🤝 Fondi (Meet Up)</button>
         <button onclick="filterCategory('🇮🇹 Italia (Ship)', this)" class="cat-btn px-3.5 py-2 rounded-xl bg-gray-800 text-gray-300 text-xs font-medium whitespace-nowrap">🇮🇹 Italia (Ship)</button>
         <button onclick="filterCategory('🇪🇸 Spagna (Ship)', this)" class="cat-btn px-3.5 py-2 rounded-xl bg-gray-800 text-gray-300 text-xs font-medium whitespace-nowrap">🇪🇸 Spagna (Ship)</button>
         <button onclick="filterCategory('🇳🇱 Olanda (Ship)', this)" class="cat-btn px-3.5 py-2 rounded-xl bg-gray-800 text-gray-300 text-xs font-medium whitespace-nowrap">🇳🇱 Olanda (Ship)</button>
         <button onclick="filterCategory('🇺🇸 USA (Ship)', this)" class="cat-btn px-3.5 py-2 rounded-xl bg-gray-800 text-gray-300 text-xs font-medium whitespace-nowrap">🇺🇸 USA (Ship)</button>
-        <button onclick="filterCategory('🤝 Roma (Meet Up)', this)" class="cat-btn px-3.5 py-2 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-bold whitespace-nowrap">🤝 Roma (Meet Up)</button>
-        <button onclick="filterCategory('🤝 Fondi (Meet Up)', this)" class="cat-btn px-3.5 py-2 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-bold whitespace-nowrap">🤝 Fondi (Meet Up)</button>
       </div>
     </div>
 
-    <div id="products-grid" class="grid grid-cols-1 gap-4">
-      <div class="text-center py-8 text-gray-500 text-sm">Caricamento prodotti in corso...</div>
+    <!-- GRIGLIA PRODOTTI -->
+    <div id="products-grid" class="grid grid-cols-2 gap-3">
+      <div class="text-center py-8 text-gray-500 text-sm col-span-2">Caricamento prodotti...</div>
     </div>
   </main>
+
+  <!-- MODALE DETTAGLIO PRODOTTO (FULL SCREEN STILE APP NATIVA) -->
+  <div id="product-detail-modal" class="fixed inset-0 bg-[#121212] z-50 hidden flex-col overflow-y-auto hide-scrollbar pb-24 transition-transform duration-300 transform translate-y-full">
+    <!-- Tasto Chiudi -->
+    <button onclick="closeProductModal()" class="absolute top-4 right-4 bg-black/60 p-2 rounded-full z-10 backdrop-blur-md">
+       <i data-lucide="x" class="w-6 h-6 text-white"></i>
+    </button>
+
+    <!-- Slider Media -->
+    <div id="pd-media-container" class="w-full h-[40vh] bg-black relative"></div>
+
+    <!-- Contenuto -->
+    <div class="p-4 space-y-4">
+        <div>
+            <span id="pd-category" class="text-[10px] uppercase font-bold text-emerald-400 tracking-wider"></span>
+            <h1 id="pd-title" class="text-2xl font-black text-white mt-1"></h1>
+            <div class="text-xs text-gray-400 flex items-center space-x-3 mt-2">
+                <span class="flex items-center"><i data-lucide="eye" class="w-3.5 h-3.5 mr-1 text-blue-400"></i> <span id="pd-views"></span> visite</span>
+                <span class="flex items-center text-amber-400">★ 5.0 Vendite verificate</span>
+            </div>
+        </div>
+        
+        <!-- Descrizione con TAG Cliccabili -->
+        <div class="bg-gray-900/60 border border-gray-800 p-3 rounded-xl">
+          <p id="pd-desc" class="text-sm text-gray-300 whitespace-pre-wrap leading-relaxed"></p>
+        </div>
+
+        <h3 class="text-[11px] font-bold text-gray-500 uppercase tracking-wider mt-4 mb-2">Seleziona una Variante</h3>
+        <div id="pd-variants-list" class="space-y-2"></div>
+        
+        <h3 class="text-[11px] font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Spesso comprati insieme</h3>
+        <div id="pd-related" class="grid grid-cols-2 gap-3 mb-8"></div>
+    </div>
+
+    <!-- Barra Acquisto Fissa in Basso -->
+    <div class="fixed bottom-0 left-0 right-0 bg-[#1e1e1e] border-t border-gray-800 p-4 flex items-center space-x-3 z-20 pb-safe">
+        <div class="flex items-center bg-gray-900 border border-gray-700 rounded-xl px-2 py-2">
+            <button onclick="changeQty(-1)" class="text-white text-xl px-3 hover:text-emerald-400 transition">-</button>
+            <span id="pd-qty-val" class="text-white font-bold w-6 text-center text-sm">1</span>
+            <button onclick="changeQty(1)" class="text-white text-xl px-3 hover:text-emerald-400 transition">+</button>
+        </div>
+        <button onclick="addToCartFromModal()" class="flex-1 bg-gradient-to-r from-emerald-500 to-teal-600 text-black font-extrabold py-3.5 rounded-xl shadow-lg shadow-emerald-500/20 flex justify-center items-center text-sm">
+            <i data-lucide="shopping-cart" class="w-4 h-4 mr-2"></i> Aggiungi <span id="pd-btn-price" class="ml-1"></span>
+        </button>
+    </div>
+  </div>
+
+  <!-- MODALE CARRELLO -->
+  <div id="cart-modal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 hidden backdrop-blur-md">
+    <div class="bg-[#181818] border border-gray-800 rounded-2xl w-full max-w-sm p-5 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center border-b border-gray-800 pb-3">
+        <h3 class="font-bold text-lg text-white">Il tuo Carrello</h3>
+        <button onclick="closeCartModal()" class="text-gray-400"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <div id="cart-items-list" class="space-y-2 max-h-40 overflow-y-auto pr-1"></div>
+      <div class="border-t border-gray-800 pt-3 space-y-3">
+        <div class="flex justify-between text-sm font-bold text-white"><span>Totale:</span><span id="cart-total-price" class="text-emerald-400">€0</span></div>
+        <div>
+          <label class="text-xs font-semibold text-gray-400 uppercase tracking-wider block mb-1">Indirizzo di Spedizione / Punto Meet Up</label>
+          <textarea id="order-address-input" rows="2" placeholder="Inserisci indirizzo completo o luogo di incontro..." class="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-xs text-white outline-none"></textarea>
+        </div>
+        <button onclick="submitOrderProcess()" class="w-full bg-emerald-500 text-black font-extrabold py-3 rounded-xl text-xs uppercase shadow-lg shadow-emerald-500/20">Invia Ordine</button>
+      </div>
+    </div>
+  </div>
 
   <script>
     lucide.createIcons();
     let allProducts = [];
     let cart = [];
+    
+    // Variabili per il Modale Dettaglio
+    let currentProd = null;
+    let selectedVariantIndex = 0;
+    let currentQty = 1;
 
-    document.addEventListener("DOMContentLoaded", () => {
-      const vid = document.getElementById("banner-video");
-      if (vid) {
-        vid.muted = true;
-        vid.play().catch(() => {
-          document.addEventListener('touchstart', () => vid.play(), { once: true });
-        });
-      }
-    });
-
-    function toggleDrawer() {
-      const drawer = document.getElementById('drawer');
-      const overlay = document.getElementById('drawer-overlay');
-      drawer.classList.toggle('translate-x-full');
-      overlay.classList.toggle('hidden');
-    }
-
-    function scrollToProducts() {
-      document.getElementById('products-section').scrollIntoView({ behavior: 'smooth' });
-    }
-
-    function openCartModal() {
-      if (cart.length === 0) {
-        alert("Il carrello è vuoto!");
-        return;
-      }
-      const list = document.getElementById('cart-items-list');
-      const total = cart.reduce((sum, item) => sum + item.price, 0);
-      
-      list.innerHTML = cart.map((i, index) => `
-        <div class="flex justify-between items-center bg-gray-900 p-2.5 rounded-xl border border-gray-800 text-xs">
-          <div>
-            <div class="font-bold text-white">${i.name}</div>
-            <div class="text-gray-400">${i.qty} - €${i.price}</div>
-          </div>
-          <button onclick="removeFromCart(${index})" class="text-red-400 hover:text-red-300 font-bold p-1">❌</button>
-        </div>
-      `).join('');
-
-      document.getElementById('cart-total-price').innerText = `€${total}`;
-      document.getElementById('cart-modal').classList.remove('hidden');
-    }
-
-    function closeCartModal() {
-      document.getElementById('cart-modal').classList.add('hidden');
-    }
-
-    function removeFromCart(index) {
-      cart.splice(index, 1);
-      const badge = document.getElementById('cart-badge');
-      badge.innerText = cart.length;
-      if (cart.length === 0) {
-        badge.classList.add('hidden');
-        closeCartModal();
-      } else {
-        openCartModal();
-      }
-    }
-
-    async function submitOrderProcess() {
-      const address = document.getElementById('order-address-input').value.trim();
-      if (!address) {
-        alert("Per favore, inserisci un indirizzo o luogo di ritrovo!");
-        return;
-      }
-
-      const total = cart.reduce((sum, item) => sum + item.price, 0);
-      const user = tg?.initDataUnsafe?.user || {};
-      const userId = user.id || 0;
-      const username = user.username || user.first_name || "Anonimo";
-
-      try {
-        const res = await fetch("https://telegram-shop-9swy.onrender.com/api/order", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ cart, total, user_id: userId, username, address })
-        });
-
-        if (res.ok) {
-          const resData = await res.json();
-          closeCartModal();
-          cart = [];
-          document.getElementById('cart-badge').classList.add('hidden');
-          document.getElementById('order-address-input').value = "";
-          
-          document.getElementById('success-order-title').innerText = `Ordine #${resData.order_id || 1} inviato!`;
-          document.getElementById('success-panel-modal').classList.remove('hidden');
-          lucide.createIcons();
-        } else {
-          alert("❌ Errore durante l'invio dell'ordine.");
-        }
-      } catch (e) {
-        console.error("Errore Invio:", e);
-        alert("❌ Errore di connessione.");
-      }
-    }
-
-    function closeSuccessPanel() {
-      document.getElementById('success-panel-modal').classList.add('hidden');
-      if (tg) tg.close();
-    }
-
-    async function openTrophiesModal() {
-      document.getElementById('trophies-modal').classList.remove('hidden');
-      const userId = tg?.initDataUnsafe?.user?.id || 0;
-      
-      if (!userId || !db) {
-        document.getElementById('user-points-val').innerText = "50";
-        document.getElementById('user-trophies-list').innerHTML = `<div class="bg-gray-800/60 p-2.5 rounded-lg text-xs text-center text-gray-300">🥇 Cliente Benvenuto</div>`;
-        return;
-      }
-
-      try {
-        const { data, error } = await db.from('users').select('*').eq('telegram_id', userId);
-        if (error || !data || data.length === 0) {
-          document.getElementById('user-points-val').innerText = "50";
-          document.getElementById('user-trophies-list').innerHTML = `<div class="bg-gray-800/60 p-2.5 rounded-lg text-xs text-center text-gray-300">🥇 Cliente Benvenuto</div>`;
-          return;
-        }
-
-        const user = data[0];
-        document.getElementById('user-points-val').innerText = user.points || 0;
-
-        let trophies = user.trophies || [];
-        if (typeof trophies === 'string') {
-          try { trophies = JSON.parse(trophies); } catch(e) { trophies = []; }
-        }
-
-        if (!trophies || trophies.length === 0) {
-          document.getElementById('user-trophies-list').innerHTML = `<div class="text-xs text-gray-500 text-center py-3">Nessun trofeo speciale sbloccato al momento.</div>`;
-        } else {
-          document.getElementById('user-trophies-list').innerHTML = trophies.map(t => `
-            <div class="bg-gray-800/80 border border-gray-700 p-2.5 rounded-xl text-xs font-bold text-amber-300 flex items-center space-x-2">
-              <i data-lucide="trophy" class="w-4 h-4 text-amber-400"></i>
-              <span>${t}</span>
-            </div>
-          `).join('');
-          lucide.createIcons();
-        }
-      } catch(e) {
-        console.error(e);
-      }
-    }
-
-    function closeTrophiesModal() {
-      document.getElementById('trophies-modal').classList.add('hidden');
-    }
-
-    function openTrackingModal() {
-      document.getElementById('tracking-modal').classList.remove('hidden');
-    }
-
-    function closeTrackingModal() {
-      document.getElementById('tracking-modal').classList.add('hidden');
-      document.getElementById('tracking-result').classList.add('hidden');
-    }
-
-    function openSupportModal() {
-      document.getElementById('support-modal').classList.remove('hidden');
-      lucide.createIcons();
-    }
-
-    function closeSupportModal() {
-      document.getElementById('support-modal').classList.add('hidden');
-    }
-
-    async function searchOrderTracking() {
-      const orderId = document.getElementById('tracking-order-id').value.trim();
-      const resContainer = document.getElementById('tracking-result');
-      if (!orderId) {
-        alert("Inserisci un numero d'ordine valido!");
-        return;
-      }
-
-      resContainer.innerHTML = `<div class="text-xs text-gray-400 text-center py-2">Ricerca in corso...</div>`;
-      resContainer.classList.remove('hidden');
-
-      try {
-        const { data, error } = await db.from('orders').select('*').eq('id', orderId);
-        if (error || !data || data.length === 0) {
-          resContainer.innerHTML = `<div class="text-xs text-red-400 text-center py-2">Ordine #${orderId} non trovato.</div>`;
-          return;
-        }
-
-        const o = data[0];
-        const statusMap = {
-          "PENDING": "⏳ In Attesa",
-          "ACCEPTED": "✅ Confermato",
-          "SHIPPED": "🚚 Spedito",
-          "CANCELLED": "❌ Annullato"
-        };
-
-        resContainer.innerHTML = `
-          <div class="bg-gray-900 border border-gray-800 p-3 rounded-xl text-xs space-y-1.5">
-            <div class="flex justify-between font-bold">
-              <span class="text-white">Ordine #${o.id}</span>
-              <span class="text-emerald-400">${statusMap[o.status] || o.status}</span>
-            </div>
-            <div class="text-gray-400">Totale: €${o.total_price}</div>
-            <div class="text-gray-300 font-mono bg-gray-800 p-2 rounded-lg mt-2">
-              <b>Tracking Code:</b><br>${o.tracking_code || 'In attesa di spedizione'}
-            </div>
-          </div>
-        `;
-      } catch(e) {
-        resContainer.innerHTML = `<div class="text-xs text-red-400 text-center py-2">Errore durante la ricerca.</div>`;
-      }
+    // Converte gli username @telegram in link cliccabili
+    function formatTextWithMentions(text) {
+        if(!text) return "";
+        return text.replace(/@(\w+)/g, '<a href="https://t.me/$1" target="_blank" class="text-blue-400 font-bold hover:underline">@$1</a>');
     }
 
     async function loadProducts() {
-      const container = document.getElementById('products-grid');
       try {
-        if (!db) throw new Error("Supabase client non inizializzato");
-        
-        const { data, error } = await db.from('products').select('*').eq('in_showcase', true);
-        if (error) throw error;
-        
-        allProducts = (data || []).filter(p => p.in_showcase !== false);
-        document.getElementById('stat-products').innerText = allProducts.length;
-        renderProducts(allProducts);
-      } catch (err) {
-        console.error("Errore Supabase:", err);
-        container.innerHTML = `
-          <div class="bg-red-900/30 border border-red-800 rounded-xl p-4 text-center text-xs text-red-300">
-            <b>Errore caricamento prodotti:</b><br>${err.message || JSON.stringify(err)}
-          </div>`;
-      }
+        const { data } = await db.from('products').select('*').eq('in_showcase', true).order('created_at', { ascending: false });
+        allProducts = data || [];
+        renderGrid(allProducts);
+      } catch (err) {}
     }
 
-    function renderProducts(products) {
+    // Renderizza Griglia Piccola Principale
+    function renderGrid(products) {
       const container = document.getElementById('products-grid');
-      if (products.length === 0) {
-        container.innerHTML = `<div class="text-center py-6 text-gray-500 text-xs">Nessun prodotto disponibile per questa categoria.</div>`;
-        return;
-      }
+      if (products.length === 0) { container.innerHTML = `<div class="col-span-2 text-center py-6 text-gray-500 text-xs">Nessun prodotto disponibile.</div>`; return; }
 
       container.innerHTML = products.map(p => {
+        let media = p.media_list;
+        if(typeof media === 'string') try { media = JSON.parse(media); } catch(e){ media = []; }
+        const firstMedia = (media && media.length > 0) ? media[0] : { url: p.media_url, type: p.media_type };
         let opts = p.price_options;
-        if (typeof opts === 'string') {
-          try { opts = JSON.parse(opts); } catch(e) { opts = []; }
-        }
-        opts = opts || [];
+        if(typeof opts === 'string') try { opts = JSON.parse(opts); } catch(e){ opts = []; }
+        const startingPrice = opts.length > 0 ? opts[0].price : 0;
 
         return `
-        <div class="bg-gray-900/90 border border-gray-800 rounded-2xl overflow-hidden shadow-lg">
-          ${p.media_type === 'video' ? `
-            <video class="w-full h-48 object-cover" autoplay loop muted playsinline webkit-playsinline src="${p.media_url}"></video>
-          ` : `
-            <img class="w-full h-48 object-cover" src="${p.media_url || 'https://images.unsplash.com/photo-1527661591475-527312dd65f5'}" />
-          `}
-          <div class="p-4 space-y-3">
-            <div class="flex justify-between items-start">
-              <div>
-                <span class="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">${p.category || ''}</span>
-                <h3 class="font-bold text-base text-white">${p.name || ''}</h3>
-              </div>
-            </div>
-            <p class="text-xs text-gray-400 line-clamp-2">${p.description || ''}</p>
-            
-            <div class="space-y-1.5 border-t border-gray-800 pt-3">
-              ${opts.map(opt => `
-                <div class="flex justify-between items-center bg-gray-800/50 px-3 py-2 rounded-lg text-xs">
-                  <span class="font-medium text-gray-200">${opt.qty}</span>
-                  <div class="flex items-center space-x-3">
-                    <span class="font-bold text-emerald-400">€${opt.price}</span>
-                    <button onclick="addToCart('${p.name}', '${opt.qty}', ${opt.price})" class="bg-emerald-500 text-black px-2.5 py-1 rounded-md font-bold text-[11px] hover:bg-emerald-400">+ Aggiungi</button>
-                  </div>
-                </div>
-              `).join('')}
-            </div>
+        <div onclick="openProductModal('${p.id}')" class="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden shadow-lg cursor-pointer transform hover:scale-95 transition">
+          ${firstMedia.type === 'video' 
+            ? `<video class="w-full h-36 object-cover pointer-events-none" autoplay loop muted playsinline src="${firstMedia.url}"></video>`
+            : `<img class="w-full h-36 object-cover pointer-events-none" src="${firstMedia.url || 'https://images.unsplash.com/photo-1527661591475-527312dd65f5'}" />`}
+          <div class="p-3">
+            <span class="text-[9px] uppercase font-bold text-emerald-400 block truncate">${p.category || ''}</span>
+            <h3 class="font-bold text-sm text-white truncate">${p.name || ''}</h3>
+            <p class="text-xs font-bold text-gray-300 mt-1">Da €${startingPrice}</p>
           </div>
         </div>
       `}).join('');
-      lucide.createIcons();
     }
+
+    // Apre Dettaglio Prodotto (Schermo Intero)
+    function openProductModal(prodId) {
+        currentProd = allProducts.find(x => x.id === prodId);
+        if(!currentProd) return;
+        
+        selectedVariantIndex = 0;
+        currentQty = 1;
+
+        // 1. Media
+        let media = currentProd.media_list;
+        if(typeof media === 'string') try { media = JSON.parse(media); } catch(e){ media = []; }
+        if(!media || media.length === 0) media = [{ url: currentProd.media_url, type: currentProd.media_type }];
+        
+        let mediaHTML = `<div class="flex overflow-x-auto hide-scrollbar media-slider w-full h-full">`;
+        media.forEach(m => {
+            mediaHTML += `<div class="w-full h-full flex-shrink-0 media-item">`;
+            if(m.type === 'video') mediaHTML += `<video class="w-full h-full object-cover" autoplay loop muted playsinline src="${m.url}"></video>`;
+            else mediaHTML += `<img class="w-full h-full object-cover" src="${m.url}" />`;
+            mediaHTML += `</div>`;
+        });
+        mediaHTML += `</div>`;
+        if(media.length > 1) mediaHTML += `<div class="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1 rounded-full">1/${media.length} ↔ Scorri</div>`;
+        document.getElementById('pd-media-container').innerHTML = mediaHTML;
+
+        // 2. Testi
+        document.getElementById('pd-category').innerText = currentProd.category;
+        document.getElementById('pd-title').innerText = currentProd.name;
+        document.getElementById('pd-desc').innerHTML = formatTextWithMentions(currentProd.description);
+        document.getElementById('pd-views').innerText = Math.floor(Math.random() * 800) + 150; // Random views stile IG
+
+        // 3. Varianti (Prezzi)
+        let opts = currentProd.price_options;
+        if(typeof opts === 'string') try { opts = JSON.parse(opts); } catch(e){ opts = []; }
+        currentProd.parsedOpts = opts; // Cache
+        
+        const varContainer = document.getElementById('pd-variants-list');
+        varContainer.innerHTML = opts.map((opt, idx) => `
+            <div onclick="selectVariant(${idx})" id="var-box-${idx}" class="border border-gray-700 bg-gray-900 rounded-xl p-3 flex justify-between items-center cursor-pointer transition ${idx === 0 ? 'variant-selected' : 'text-gray-300'}">
+                <span class="font-bold text-sm">${opt.qty}</span>
+                <span class="font-extrabold text-sm">€${opt.price}</span>
+            </div>
+        `).join('');
+
+        // 4. Prodotti Correlati
+        const related = allProducts.filter(p => p.id !== prodId).sort(() => 0.5 - Math.random()).slice(0, 4);
+        document.getElementById('pd-related').innerHTML = related.map(p => {
+             let rm = p.media_list; if(typeof rm === 'string') try { rm = JSON.parse(rm); } catch(e){ rm = []; }
+             const firstRm = (rm && rm.length > 0) ? rm[0] : { url: p.media_url, type: p.media_type };
+             return `
+             <div onclick="closeProductModal(); setTimeout(()=>openProductModal('${p.id}'), 300)" class="bg-gray-800 rounded-xl overflow-hidden cursor-pointer">
+                ${firstRm.type === 'video' ? `<video class="w-full h-24 object-cover" muted src="${firstRm.url}"></video>` : `<img class="w-full h-24 object-cover" src="${firstRm.url}" />`}
+                <div class="p-2 text-xs font-bold text-white truncate">${p.name}</div>
+             </div>`
+        }).join('');
+
+        updateBottomBar();
+        
+        const modal = document.getElementById('product-detail-modal');
+        modal.classList.remove('hidden');
+        setTimeout(() => modal.classList.remove('translate-y-full'), 10);
+    }
+
+    function closeProductModal() {
+        const modal = document.getElementById('product-detail-modal');
+        modal.classList.add('translate-y-full');
+        setTimeout(() => modal.classList.add('hidden'), 300);
+    }
+
+    function selectVariant(idx) {
+        selectedVariantIndex = idx;
+        const opts = currentProd.parsedOpts;
+        opts.forEach((_, i) => {
+            const box = document.getElementById(`var-box-${i}`);
+            if(i === idx) {
+                box.classList.add('variant-selected');
+                box.classList.remove('text-gray-300');
+            } else {
+                box.classList.remove('variant-selected');
+                box.classList.add('text-gray-300');
+            }
+        });
+        updateBottomBar();
+    }
+
+    function changeQty(delta) {
+        currentQty = Math.max(1, currentQty + delta);
+        updateBottomBar();
+        if(tg) tg.HapticFeedback?.selectionChanged();
+    }
+
+    function updateBottomBar() {
+        document.getElementById('pd-qty-val').innerText = currentQty;
+        const price = currentProd.parsedOpts[selectedVariantIndex].price;
+        const total = (price * currentQty).toFixed(2);
+        document.getElementById('pd-btn-price').innerText = `(€${total})`;
+    }
+
+    function addToCartFromModal() {
+        const opt = currentProd.parsedOpts[selectedVariantIndex];
+        const finalPrice = opt.price * currentQty;
+        cart.push({ name: `${currentProd.name} - ${opt.qty}`, qty: currentQty, price: finalPrice });
+        
+        const badge = document.getElementById('cart-badge');
+        badge.innerText = cart.length;
+        badge.classList.remove('hidden');
+        
+        if (tg) tg.HapticFeedback?.notificationOccurred('success');
+        closeProductModal();
+    }
+
+    // Funzioni Carrello (Classiche)
+    function openCartModal() {
+      if (cart.length === 0) return alert("Carrello vuoto!");
+      document.getElementById('cart-items-list').innerHTML = cart.map((i, index) => `
+        <div class="flex justify-between items-center bg-gray-900 p-2.5 rounded-xl border border-gray-800 text-xs">
+          <div><div class="font-bold text-white">${i.name}</div><div class="text-gray-400">Qt: ${i.qty} - €${i.price}</div></div>
+          <button onclick="removeFromCart(${index})" class="text-red-400 font-bold p-1">❌</button>
+        </div>`).join('');
+      document.getElementById('cart-total-price').innerText = `€${cart.reduce((s, i) => s + i.price, 0)}`;
+      document.getElementById('cart-modal').classList.remove('hidden');
+    }
+    function closeCartModal() { document.getElementById('cart-modal').classList.add('hidden'); }
+    function removeFromCart(index) { cart.splice(index, 1); if (cart.length === 0) { document.getElementById('cart-badge').classList.add('hidden'); closeCartModal(); } else { document.getElementById('cart-badge').innerText = cart.length; openCartModal(); } }
+
+    async function submitOrderProcess() {
+      const address = document.getElementById('order-address-input').value.trim();
+      if (!address) return alert("Inserisci indirizzo o ritrovo!");
+      const total = cart.reduce((s, item) => s + item.price, 0);
+      const user = tg?.initDataUnsafe?.user || {};
+      try {
+        const res = await fetch("https://telegram-shop-9swy.onrender.com/api/order", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ cart, total, user_id: user.id || 0, username: user.username || "Anonimo", address })
+        });
+        if (res.ok) {
+          closeCartModal(); cart = []; document.getElementById('cart-badge').classList.add('hidden');
+          document.getElementById('success-panel-modal').classList.remove('hidden');
+        }
+      } catch (e) { alert("Errore connessione."); }
+    }
+    function closeSuccessPanel() { document.getElementById('success-panel-modal').classList.add('hidden'); if(tg) tg.close(); }
 
     function filterCategory(cat, btn) {
-      document.querySelectorAll('.cat-btn').forEach(b => {
-        b.classList.remove('bg-emerald-500', 'text-black');
-        b.classList.add('bg-gray-800', 'text-gray-300');
-      });
-      if (btn) {
-        btn.classList.remove('bg-gray-800', 'text-gray-300');
-        btn.classList.add('bg-emerald-500', 'text-black');
-      }
-
-      if (cat === 'ALL') {
-        renderProducts(allProducts);
-      } else {
-        renderProducts(allProducts.filter(p => {
-          if (!p.category) return false;
-          if (p.category === cat) return true;
-          if (cat.includes('Italia') && p.category.includes('Italia')) return true;
-          if (cat.includes('Spagna') && p.category.includes('Spagna') && !p.category.includes('Meet Up')) return true;
-          if (cat.includes('Olanda') && p.category.includes('Olanda')) return true;
-          if (cat.includes('USA') && p.category.includes('USA')) return true;
-          if (cat.includes('Roma') && p.category.includes('Roma')) return true;
-          if (cat.includes('Fondi') && p.category.includes('Fondi')) return true;
-          return false;
-        }));
-      }
-    }
-
-    function addToCart(name, qty, price) {
-      cart.push({ name, qty, price });
-      const badge = document.getElementById('cart-badge');
-      badge.innerText = cart.length;
-      badge.classList.remove('hidden');
-      if (tg) tg.HapticFeedback?.impactOccurred('light');
+      document.querySelectorAll('.cat-btn').forEach(b => { b.classList.remove('bg-emerald-500', 'text-black'); b.classList.add('bg-gray-800', 'text-gray-300'); });
+      if (btn) { btn.classList.remove('bg-gray-800', 'text-gray-300'); btn.classList.add('bg-emerald-500', 'text-black'); }
+      if (cat === 'ALL') renderGrid(allProducts);
+      else renderGrid(allProducts.filter(p => p.category && p.category.includes(cat)));
     }
 
     loadProducts();
