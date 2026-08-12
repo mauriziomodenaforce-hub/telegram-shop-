@@ -20,7 +20,12 @@
     .drawer { transition: transform 0.3s ease-in-out; }
     .hide-scrollbar::-webkit-scrollbar { display: none; }
     .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-    .media-slider { scroll-snap-type: x mandatory; }
+    
+    /* Regole per lo scorrimento di foto/video */
+    .media-slider { 
+        scroll-snap-type: x mandatory; 
+        -webkit-overflow-scrolling: touch;
+    }
     .media-item { scroll-snap-align: center; }
     .variant-selected { border-color: #10b981 !important; background-color: rgba(16, 185, 129, 0.1) !important; color: white !important; }
   </style>
@@ -40,10 +45,11 @@
     }
     
     const tg = window.Telegram?.WebApp;
-    if (tg) tg.expand();
+    if (tg) {
+        tg.expand();
+    }
   </script>
 
-  <!-- NAVBAR -->
   <header class="sticky top-0 z-30 bg-[#1e1e1e]/90 backdrop-blur-md px-4 py-3 flex justify-between items-center border-b border-gray-800">
     <div class="flex items-center space-x-3">
       <div class="w-9 h-9 rounded-full bg-cover bg-center border border-emerald-500" style="background-image: url('https://files.catbox.moe/smngwm.png');"></div>
@@ -60,7 +66,6 @@
     </div>
   </header>
 
-  <!-- DRAWER (MENU LATERALE) -->
   <div id="drawer-overlay" onclick="toggleDrawer()" class="fixed inset-0 bg-black/60 z-40 hidden backdrop-blur-sm"></div>
   <aside id="drawer" class="fixed top-0 right-0 w-72 h-full bg-[#181818] z-50 transform translate-x-full drawer p-5 flex flex-col justify-between border-l border-gray-800">
     <div>
@@ -93,9 +98,6 @@
     </div>
   </aside>
 
-  <!-- MODALI DI SISTEMA -->
-  
-  <!-- Modale Carrello -->
   <div id="cart-modal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 hidden backdrop-blur-md">
     <div class="bg-[#181818] border border-gray-800 rounded-2xl w-full max-w-sm p-5 space-y-4 shadow-2xl">
       <div class="flex justify-between items-center border-b border-gray-800 pb-3">
@@ -121,7 +123,6 @@
     </div>
   </div>
 
-  <!-- Modale Conferma Ordine -->
   <div id="success-panel-modal" class="fixed inset-0 bg-[#dbeafe] z-50 flex flex-col items-center justify-center p-6 text-center hidden">
     <div class="w-20 h-20 bg-emerald-500 rounded-2xl flex items-center justify-center mb-6 shadow-xl">
       <i data-lucide="check" class="w-12 h-12 text-white stroke-[3]"></i>
@@ -135,7 +136,6 @@
     </button>
   </div>
 
-  <!-- Modale Trofei -->
   <div id="trophies-modal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 hidden backdrop-blur-md">
     <div class="bg-[#181818] border border-gray-800 rounded-2xl w-full max-w-sm p-5 space-y-4 shadow-2xl">
       <div class="flex justify-between items-center border-b border-gray-800 pb-3">
@@ -159,7 +159,6 @@
     </div>
   </div>
 
-  <!-- Modale Tracking -->
   <div id="tracking-modal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 hidden backdrop-blur-md">
     <div class="bg-[#181818] border border-gray-800 rounded-2xl w-full max-w-sm p-5 space-y-4 shadow-2xl">
       <div class="flex justify-between items-center border-b border-gray-800 pb-3">
@@ -183,7 +182,6 @@
     </div>
   </div>
 
-  <!-- Modale Assistenza / Supporto -->
   <div id="support-modal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 hidden backdrop-blur-md">
     <div class="bg-[#181818] border border-gray-800 rounded-2xl w-full max-w-sm p-5 space-y-4 shadow-2xl">
       <div class="flex justify-between items-center border-b border-gray-800 pb-3">
@@ -219,17 +217,14 @@
     </div>
   </div>
 
-  <!-- MODALE DETTAGLIO PRODOTTO SCHERMO INTERO -->
+
   <div id="product-detail-modal" class="fixed inset-0 bg-[#121212] z-50 hidden flex-col overflow-y-auto hide-scrollbar pb-24 transition-transform duration-300 transform translate-y-full">
-    <!-- Tasto Chiudi -->
     <button onclick="closeProductModal()" class="absolute top-4 right-4 bg-black/60 p-2 rounded-full z-10 backdrop-blur-md">
        <i data-lucide="x" class="w-6 h-6 text-white"></i>
     </button>
 
-    <!-- Slider Media -->
     <div id="pd-media-container" class="w-full h-[40vh] bg-black relative"></div>
 
-    <!-- Contenuto Testuale -->
     <div class="p-4 space-y-4">
         <div>
             <span id="pd-category" class="text-[10px] uppercase font-bold text-emerald-400 tracking-wider"></span>
@@ -239,7 +234,6 @@
             </div>
         </div>
         
-        <!-- Descrizione con TAG Cliccabili (@) -->
         <div class="bg-gray-900/60 border border-gray-800 p-3 rounded-xl">
           <p id="pd-desc" class="text-sm text-gray-300 whitespace-pre-wrap leading-relaxed"></p>
         </div>
@@ -251,7 +245,6 @@
         <div id="pd-related" class="grid grid-cols-2 gap-3 mb-8"></div>
     </div>
 
-    <!-- Barra Acquisto Fissa (Bottom) -->
     <div class="fixed bottom-0 left-0 right-0 bg-[#1e1e1e] border-t border-gray-800 p-4 flex items-center space-x-3 z-20 pb-safe">
         <div class="flex items-center bg-gray-900 border border-gray-700 rounded-xl px-2 py-2">
             <button onclick="changeQty(-1)" class="text-white text-xl px-3 hover:text-emerald-400 transition">-</button>
@@ -265,10 +258,8 @@
   </div>
 
 
-  <!-- CONTENUTO PRINCIPALE VETRINA (HOME) -->
   <main class="p-4 space-y-5">
     
-    <!-- Banner Video -->
     <div class="relative rounded-2xl overflow-hidden border border-gray-800 bg-gray-900 shadow-2xl">
       <video id="banner-video" class="w-full h-48 object-cover" autoplay loop muted playsinline webkit-playsinline src="https://files.catbox.moe/2a9rqy.mov"></video>
       <div class="absolute inset-0 bg-gradient-to-t from-[#121212] via-black/40 to-transparent"></div>
@@ -282,7 +273,6 @@
       </div>
     </div>
 
-    <!-- Scheda Info e Bottoni -->
     <div class="bg-gray-900/80 border border-gray-800 rounded-2xl p-4 space-y-2 text-sm text-gray-300 shadow-md">
       <p class="font-bold text-white">👋 Benvenuto nello shop di Boston George 420!</p>
       <p class="text-xs text-gray-400">📦 Tutti i prodotti in pronta consegna con spedizioni riservate o ritrovo sul posto.</p>
@@ -303,7 +293,6 @@
       </button>
     </div>
 
-    <!-- Categorie (Meet Up Ordinati Prima) -->
     <div class="space-y-3 pt-2" id="products-section">
       <div class="flex justify-between items-center">
         <h2 class="text-lg font-bold text-white tracking-wide">Catalogo Prodotti</h2>
@@ -320,7 +309,6 @@
       </div>
     </div>
 
-    <!-- GRIGLIA ORIGINALE A SCHEDE GRANDI -->
     <div id="products-grid" class="grid grid-cols-1 gap-4">
       <div class="text-center py-8 text-gray-500 text-sm">Caricamento prodotti in corso...</div>
     </div>
@@ -370,7 +358,7 @@
       }
     }
 
-    // --- RENDER SCHEDE GRANDI (STILE ORIGINALE + CAROSELLO SCORREVOLE) ---
+    // --- RENDER SCHEDE GRANDI (STILE ORIGINALE + CAROSELLO) ---
     function renderProducts(products) {
       const container = document.getElementById('products-grid');
       if (products.length === 0) {
@@ -395,34 +383,33 @@
             media = [{ url: p.media_url, type: p.media_type || 'image' }];
         }
 
-        // Costruisci l'HTML della singola scheda con la tua formattazione e lo slider integrato
+        // HTML della singola scheda
+        // NOTA IL FIX: Il div cliccabile ha pointer-events-none sui video/immagini 
+        // per permettere al telefono di cliccare senza confondersi con lo swipe.
         return `
         <div class="bg-gray-900/90 border border-gray-800 rounded-2xl overflow-hidden shadow-lg">
           
-          <!-- Contenitore Immagine/Video Scorrevole e Cliccabile -->
           <div class="relative w-full h-52 bg-gray-800">
             <div class="flex overflow-x-auto hide-scrollbar media-slider w-full h-full" style="-webkit-overflow-scrolling: touch;">
               ${media.map(m => `
-                <div class="w-full h-full flex-shrink-0 media-item">
+                <div onclick="openProductModal('${p.id}')" class="w-full h-full flex-shrink-0 media-item cursor-pointer">
                   ${m.type === 'video' 
-                    ? `<video onclick="openProductModal('${p.id}')" class="w-full h-full object-cover cursor-pointer" autoplay loop muted playsinline src="${m.url}"></video>`
-                    : `<img onclick="openProductModal('${p.id}')" class="w-full h-full object-cover cursor-pointer" src="${m.url || 'https://images.unsplash.com/photo-1527661591475-527312dd65f5'}" />`}
+                    ? `<video class="w-full h-full object-cover pointer-events-none" autoplay loop muted playsinline src="${m.url}"></video>`
+                    : `<img class="w-full h-full object-cover pointer-events-none" src="${m.url || 'https://images.unsplash.com/photo-1527661591475-527312dd65f5'}" />`}
                 </div>
               `).join('')}
             </div>
-            <!-- Etichetta se ci sono più foto -->
+            
             ${media.length > 1 ? `<div class="absolute bottom-2 right-2 bg-black/70 backdrop-blur-sm text-white text-[10px] px-2.5 py-1 rounded-full font-bold pointer-events-none z-10 shadow-md">↔ Scorri (${media.length})</div>` : ''}
           </div>
           
           <div class="p-4 space-y-3">
-            <!-- Testo Cliccabile (Apre Modale) -->
             <div onclick="openProductModal('${p.id}')" class="cursor-pointer">
               <span class="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">${p.category || ''}</span>
               <h3 class="font-bold text-base text-white mt-0.5">${p.name || ''}</h3>
               <p class="text-xs text-gray-400 line-clamp-2 mt-1">${p.description || 'Prodotto in pronta consegna da ' + p.category}</p>
             </div>
             
-            <!-- Bottoni '+ Aggiungi' in vista (Esattamente come li avevi prima) -->
             <div class="space-y-1.5 border-t border-gray-800 pt-3">
               ${opts.map(opt => `
                 <div class="flex justify-between items-center bg-gray-800/50 px-3 py-2 rounded-lg text-xs border border-gray-700/50">
@@ -460,16 +447,16 @@
         media.forEach(m => {
             mediaHTML += `<div class="w-full h-full flex-shrink-0 media-item">`;
             if(m.type === 'video') {
-                mediaHTML += `<video class="w-full h-full object-cover" autoplay loop muted playsinline src="${m.url}"></video>`;
+                mediaHTML += `<video class="w-full h-full object-cover pointer-events-none" autoplay loop muted playsinline src="${m.url}"></video>`;
             } else {
-                mediaHTML += `<img class="w-full h-full object-cover" src="${m.url}" />`;
+                mediaHTML += `<img class="w-full h-full object-cover pointer-events-none" src="${m.url}" />`;
             }
             mediaHTML += `</div>`;
         });
         mediaHTML += `</div>`;
         
         if(media.length > 1) {
-            mediaHTML += `<div class="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-lg">1/${media.length} ↔ Scorri</div>`;
+            mediaHTML += `<div class="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-lg pointer-events-none">1/${media.length} ↔ Scorri</div>`;
         }
         document.getElementById('pd-media-container').innerHTML = mediaHTML;
 
@@ -501,8 +488,8 @@
              return `
              <div onclick="closeProductModal(); setTimeout(()=>openProductModal('${p.id}'), 300)" class="bg-gray-800 rounded-xl overflow-hidden cursor-pointer shadow-md">
                 ${firstRm.type === 'video' 
-                    ? `<video class="w-full h-24 object-cover" muted src="${firstRm.url}"></video>` 
-                    : `<img class="w-full h-24 object-cover" src="${firstRm.url}" />`}
+                    ? `<video class="w-full h-24 object-cover pointer-events-none" muted src="${firstRm.url}"></video>` 
+                    : `<img class="w-full h-24 object-cover pointer-events-none" src="${firstRm.url}" />`}
                 <div class="p-2 text-xs font-bold text-white truncate">${p.name}</div>
              </div>`
         }).join('');
@@ -510,9 +497,10 @@
         // 5. Aggiorna prezzo totale in basso e apri
         updateBottomBar();
         const modal = document.getElementById('product-detail-modal');
-        modal.classList.remove('hidden');
         
-        // Timeout per permettere la transizione fluida
+        modal.classList.remove('hidden');
+        modal.classList.add('flex'); // Assicura che il layout interno sia corretto (IMPORTANTE PER NON BUGGARE LA FOTO)
+        
         setTimeout(() => {
             modal.classList.remove('translate-y-full');
         }, 10);
@@ -523,6 +511,7 @@
         modal.classList.add('translate-y-full');
         setTimeout(() => {
             modal.classList.add('hidden');
+            modal.classList.remove('flex');
         }, 300);
     }
 
@@ -530,7 +519,6 @@
         selectedVariantIndex = idx;
         const opts = currentProd.parsedOpts;
         
-        // Aggiorna lo stile dei bottoni
         opts.forEach((_, i) => {
             const box = document.getElementById(`var-box-${i}`);
             if(i === idx) {
@@ -556,12 +544,14 @@
             const price = currentProd.parsedOpts[selectedVariantIndex].price;
             const total = (price * currentQty).toFixed(2);
             document.getElementById('pd-btn-price').innerText = `(€${total})`;
+        } else {
+            document.getElementById('pd-btn-price').innerText = '';
         }
     }
 
     function addToCartFromModal() {
+        if(!currentProd || !currentProd.parsedOpts || currentProd.parsedOpts.length === 0) return;
         const opt = currentProd.parsedOpts[selectedVariantIndex];
-        // Richiama la funzione base del carrello calcolando il prezzo moltiplicato
         addToCart(currentProd.name, opt.qty, opt.price * currentQty, currentQty);
         closeProductModal();
     }
@@ -741,7 +731,7 @@
       const resContainer = document.getElementById('tracking-result');
       
       if (!orderId) {
-          alert("Inserisci un numero d'ordine!")
+          alert("Inserisci un numero d'ordine!");
           return;
       }
       
@@ -792,3 +782,4 @@
   </script>
 </body>
 </html>
+
