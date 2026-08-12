@@ -17,17 +17,30 @@
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
         user-select: none; 
     }
-    .drawer { transition: transform 0.3s ease-in-out; }
-    .hide-scrollbar::-webkit-scrollbar { display: none; }
-    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .drawer { 
+        transition: transform 0.3s ease-in-out; 
+    }
+    .hide-scrollbar::-webkit-scrollbar { 
+        display: none; 
+    }
+    .hide-scrollbar { 
+        -ms-overflow-style: none; 
+        scrollbar-width: none; 
+    }
     
     /* Regole per lo scorrimento di foto/video */
     .media-slider { 
         scroll-snap-type: x mandatory; 
         -webkit-overflow-scrolling: touch;
     }
-    .media-item { scroll-snap-align: center; }
-    .variant-selected { border-color: #10b981 !important; background-color: rgba(16, 185, 129, 0.1) !important; color: white !important; }
+    .media-item { 
+        scroll-snap-align: center; 
+    }
+    .variant-selected { 
+        border-color: #10b981 !important; 
+        background-color: rgba(16, 185, 129, 0.1) !important; 
+        color: white !important; 
+    }
   </style>
 </head>
 <body class="pb-24">
@@ -50,6 +63,7 @@
     }
   </script>
 
+  <!-- NAVBAR -->
   <header class="sticky top-0 z-30 bg-[#1e1e1e]/90 backdrop-blur-md px-4 py-3 flex justify-between items-center border-b border-gray-800">
     <div class="flex items-center space-x-3">
       <div class="w-9 h-9 rounded-full bg-cover bg-center border border-emerald-500" style="background-image: url('https://files.catbox.moe/smngwm.png');"></div>
@@ -66,6 +80,7 @@
     </div>
   </header>
 
+  <!-- DRAWER (MENU LATERALE) -->
   <div id="drawer-overlay" onclick="toggleDrawer()" class="fixed inset-0 bg-black/60 z-40 hidden backdrop-blur-sm"></div>
   <aside id="drawer" class="fixed top-0 right-0 w-72 h-full bg-[#181818] z-50 transform translate-x-full drawer p-5 flex flex-col justify-between border-l border-gray-800">
     <div>
@@ -98,11 +113,16 @@
     </div>
   </aside>
 
+  <!-- MODALE CARRELLO -->
   <div id="cart-modal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 hidden backdrop-blur-md">
     <div class="bg-[#181818] border border-gray-800 rounded-2xl w-full max-w-sm p-5 space-y-4 shadow-2xl">
       <div class="flex justify-between items-center border-b border-gray-800 pb-3">
-        <h3 class="font-bold text-lg text-white flex items-center"><i data-lucide="shopping-bag" class="w-5 h-5 text-emerald-400 mr-2"></i> Il tuo Carrello</h3>
-        <button onclick="closeCartModal()" class="text-gray-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+        <h3 class="font-bold text-lg text-white flex items-center">
+            <i data-lucide="shopping-bag" class="w-5 h-5 text-emerald-400 mr-2"></i> Il tuo Carrello
+        </h3>
+        <button onclick="closeCartModal()" class="text-gray-400 hover:text-white">
+            <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
       </div>
       
       <div id="cart-items-list" class="space-y-2 max-h-40 overflow-y-auto pr-1"></div>
@@ -123,6 +143,7 @@
     </div>
   </div>
 
+  <!-- MODALE CONFERMA ORDINE -->
   <div id="success-panel-modal" class="fixed inset-0 bg-[#dbeafe] z-50 flex flex-col items-center justify-center p-6 text-center hidden">
     <div class="w-20 h-20 bg-emerald-500 rounded-2xl flex items-center justify-center mb-6 shadow-xl">
       <i data-lucide="check" class="w-12 h-12 text-white stroke-[3]"></i>
@@ -136,13 +157,16 @@
     </button>
   </div>
 
+  <!-- MODALE TROFEI -->
   <div id="trophies-modal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 hidden backdrop-blur-md">
     <div class="bg-[#181818] border border-gray-800 rounded-2xl w-full max-w-sm p-5 space-y-4 shadow-2xl">
       <div class="flex justify-between items-center border-b border-gray-800 pb-3">
         <h3 class="font-bold text-lg text-white flex items-center">
           <i data-lucide="award" class="w-5 h-5 text-amber-400 mr-2"></i> Punti & Trofei
         </h3>
-        <button onclick="closeTrophiesModal()" class="text-gray-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+        <button onclick="closeTrophiesModal()" class="text-gray-400 hover:text-white">
+            <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
       </div>
       
       <div class="bg-gradient-to-r from-amber-500/10 to-yellow-500/10 border border-amber-500/20 rounded-xl p-4 text-center">
@@ -159,13 +183,16 @@
     </div>
   </div>
 
+  <!-- MODALE TRACKING -->
   <div id="tracking-modal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 hidden backdrop-blur-md">
     <div class="bg-[#181818] border border-gray-800 rounded-2xl w-full max-w-sm p-5 space-y-4 shadow-2xl">
       <div class="flex justify-between items-center border-b border-gray-800 pb-3">
         <h3 class="font-bold text-lg text-white flex items-center">
           <i data-lucide="truck" class="w-5 h-5 text-blue-400 mr-2"></i> Tracking Ordine
         </h3>
-        <button onclick="closeTrackingModal()" class="text-gray-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+        <button onclick="closeTrackingModal()" class="text-gray-400 hover:text-white">
+            <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
       </div>
       
       <div class="space-y-3">
@@ -182,13 +209,16 @@
     </div>
   </div>
 
+  <!-- MODALE ASSISTENZA / SUPPORTO -->
   <div id="support-modal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 hidden backdrop-blur-md">
     <div class="bg-[#181818] border border-gray-800 rounded-2xl w-full max-w-sm p-5 space-y-4 shadow-2xl">
       <div class="flex justify-between items-center border-b border-gray-800 pb-3">
         <h3 class="font-bold text-lg text-white flex items-center">
           <i data-lucide="headphones" class="w-5 h-5 text-emerald-400 mr-2"></i> Supporto & Assistenza
         </h3>
-        <button onclick="closeSupportModal()" class="text-gray-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+        <button onclick="closeSupportModal()" class="text-gray-400 hover:text-white">
+            <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
       </div>
 
       <div class="space-y-3">
@@ -218,13 +248,17 @@
   </div>
 
 
+  <!-- MODALE DETTAGLIO PRODOTTO SCHERMO INTERO -->
   <div id="product-detail-modal" class="fixed inset-0 bg-[#121212] z-50 hidden flex-col overflow-y-auto hide-scrollbar pb-24 transition-transform duration-300 transform translate-y-full">
+    <!-- Tasto Chiudi -->
     <button onclick="closeProductModal()" class="absolute top-4 right-4 bg-black/60 p-2 rounded-full z-10 backdrop-blur-md">
        <i data-lucide="x" class="w-6 h-6 text-white"></i>
     </button>
 
+    <!-- Slider Media (Dentro la Modale) -->
     <div id="pd-media-container" class="w-full h-[40vh] bg-black relative"></div>
 
+    <!-- Contenuto Testuale -->
     <div class="p-4 space-y-4">
         <div>
             <span id="pd-category" class="text-[10px] uppercase font-bold text-emerald-400 tracking-wider"></span>
@@ -234,6 +268,7 @@
             </div>
         </div>
         
+        <!-- Descrizione con TAG Cliccabili (@) -->
         <div class="bg-gray-900/60 border border-gray-800 p-3 rounded-xl">
           <p id="pd-desc" class="text-sm text-gray-300 whitespace-pre-wrap leading-relaxed"></p>
         </div>
@@ -245,6 +280,7 @@
         <div id="pd-related" class="grid grid-cols-2 gap-3 mb-8"></div>
     </div>
 
+    <!-- Barra Acquisto Fissa (Bottom) -->
     <div class="fixed bottom-0 left-0 right-0 bg-[#1e1e1e] border-t border-gray-800 p-4 flex items-center space-x-3 z-20 pb-safe">
         <div class="flex items-center bg-gray-900 border border-gray-700 rounded-xl px-2 py-2">
             <button onclick="changeQty(-1)" class="text-white text-xl px-3 hover:text-emerald-400 transition">-</button>
@@ -258,8 +294,10 @@
   </div>
 
 
+  <!-- CONTENUTO PRINCIPALE VETRINA (HOME) -->
   <main class="p-4 space-y-5">
     
+    <!-- Banner Video -->
     <div class="relative rounded-2xl overflow-hidden border border-gray-800 bg-gray-900 shadow-2xl">
       <video id="banner-video" class="w-full h-48 object-cover" autoplay loop muted playsinline webkit-playsinline src="https://files.catbox.moe/2a9rqy.mov"></video>
       <div class="absolute inset-0 bg-gradient-to-t from-[#121212] via-black/40 to-transparent"></div>
@@ -273,6 +311,7 @@
       </div>
     </div>
 
+    <!-- Scheda Info e Bottoni -->
     <div class="bg-gray-900/80 border border-gray-800 rounded-2xl p-4 space-y-2 text-sm text-gray-300 shadow-md">
       <p class="font-bold text-white">👋 Benvenuto nello shop di Boston George 420!</p>
       <p class="text-xs text-gray-400">📦 Tutti i prodotti in pronta consegna con spedizioni riservate o ritrovo sul posto.</p>
@@ -293,6 +332,7 @@
       </button>
     </div>
 
+    <!-- Categorie (Meet Up Ordinati Prima) -->
     <div class="space-y-3 pt-2" id="products-section">
       <div class="flex justify-between items-center">
         <h2 class="text-lg font-bold text-white tracking-wide">Catalogo Prodotti</h2>
@@ -309,11 +349,13 @@
       </div>
     </div>
 
+    <!-- GRIGLIA ORIGINALE A SCHEDE GRANDI (1 Colonna) -->
     <div id="products-grid" class="grid grid-cols-1 gap-4">
       <div class="text-center py-8 text-gray-500 text-sm">Caricamento prodotti in corso...</div>
     </div>
   </main>
 
+  <!-- SEZIONE JAVASCRIPT COMPLETAMENTE ESPANSA (NESSUNA COMPRESSIONE) -->
   <script>
     // --- INIZIALIZZAZIONE ---
     lucide.createIcons();
@@ -327,91 +369,106 @@
 
     // --- FUNZIONI DI BASE UI ---
     function toggleDrawer() {
-      document.getElementById('drawer').classList.toggle('translate-x-full');
-      document.getElementById('drawer-overlay').classList.toggle('hidden');
+      const drawer = document.getElementById('drawer');
+      const overlay = document.getElementById('drawer-overlay');
+      drawer.classList.toggle('translate-x-full');
+      overlay.classList.toggle('hidden');
     }
 
     function scrollToProducts() {
-      document.getElementById('products-section').scrollIntoView({ behavior: 'smooth' });
+      const section = document.getElementById('products-section');
+      section.scrollIntoView({ behavior: 'smooth' });
     }
 
     function formatTextWithMentions(text) {
-        if(!text) return "";
-        // Converte @username in link telegram
+        if(!text) {
+            return "";
+        }
+        // Converte @username in link telegram cliccabili blu
         return text.replace(/@(\w+)/g, '<a href="https://t.me/$1" target="_blank" class="text-blue-400 font-bold hover:underline">@$1</a>');
     }
 
     // --- CARICAMENTO PRODOTTI DAL DATABASE ---
     async function loadProducts() {
       try {
-        if (!db) throw new Error("Supabase client non inizializzato");
+        if (!db) {
+            throw new Error("Supabase client non inizializzato");
+        }
         
         const { data, error } = await db.from('products').select('*').eq('in_showcase', true).order('created_at', { ascending: false });
-        if (error) throw error;
+        
+        if (error) {
+            throw error;
+        }
         
         allProducts = data || [];
         document.getElementById('stat-products').innerText = allProducts.length;
         renderProducts(allProducts);
+        
       } catch (err) {
         console.error(err);
-        document.getElementById('products-grid').innerHTML = `<div class="text-center py-4 text-red-400 text-sm">Impossibile caricare i prodotti.</div>`;
+        const container = document.getElementById('products-grid');
+        container.innerHTML = `<div class="text-center py-4 text-red-400 text-sm">Impossibile caricare i prodotti.</div>`;
       }
     }
 
-    // --- RENDER SCHEDE GRANDI (STILE ORIGINALE + CAROSELLO) ---
+    // --- RENDER SCHEDE GRANDI (STILE ORIGINALE + CAROSELLO SCORREVOLE) ---
     function renderProducts(products) {
       const container = document.getElementById('products-grid');
+      
       if (products.length === 0) {
         container.innerHTML = `<div class="text-center py-6 text-gray-500 text-xs">Nessun prodotto per questa categoria.</div>`;
         return;
       }
 
-      container.innerHTML = products.map(p => {
+      let html = '';
+
+      products.forEach(p => {
         // Estrai Varianti
         let opts = p.price_options;
         if (typeof opts === 'string') {
-            try { opts = JSON.parse(opts); } catch(e) { opts = []; }
+            try { 
+                opts = JSON.parse(opts); 
+            } catch(e) { 
+                opts = []; 
+            }
         }
         opts = opts || [];
 
         // Estrai Media
         let media = p.media_list;
         if (typeof media === 'string') {
-            try { media = JSON.parse(media); } catch(e) { media = []; }
+            try { 
+                media = JSON.parse(media); 
+            } catch(e) { 
+                media = []; 
+            }
         }
         if (!media || media.length === 0) {
             media = [{ url: p.media_url, type: p.media_type || 'image' }];
         }
 
-        // HTML della singola scheda
-        // NOTA IL FIX: Il div cliccabile ha pointer-events-none sui video/immagini 
-        // per permettere al telefono di cliccare senza confondersi con lo swipe.
-        return `
-        <div class="bg-gray-900/90 border border-gray-800 rounded-2xl overflow-hidden shadow-lg">
-          
-          <div class="relative w-full h-52 bg-gray-800">
-            <div class="flex overflow-x-auto hide-scrollbar media-slider w-full h-full" style="-webkit-overflow-scrolling: touch;">
-              ${media.map(m => `
-                <div onclick="openProductModal('${p.id}')" class="w-full h-full flex-shrink-0 media-item cursor-pointer">
-                  ${m.type === 'video' 
-                    ? `<video class="w-full h-full object-cover pointer-events-none" autoplay loop muted playsinline src="${m.url}"></video>`
-                    : `<img class="w-full h-full object-cover pointer-events-none" src="${m.url || 'https://images.unsplash.com/photo-1527661591475-527312dd65f5'}" />`}
-                </div>
-              `).join('')}
-            </div>
-            
-            ${media.length > 1 ? `<div class="absolute bottom-2 right-2 bg-black/70 backdrop-blur-sm text-white text-[10px] px-2.5 py-1 rounded-full font-bold pointer-events-none z-10 shadow-md">↔ Scorri (${media.length})</div>` : ''}
-          </div>
-          
-          <div class="p-4 space-y-3">
-            <div onclick="openProductModal('${p.id}')" class="cursor-pointer">
-              <span class="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">${p.category || ''}</span>
-              <h3 class="font-bold text-base text-white mt-0.5">${p.name || ''}</h3>
-              <p class="text-xs text-gray-400 line-clamp-2 mt-1">${p.description || 'Prodotto in pronta consegna da ' + p.category}</p>
-            </div>
-            
-            <div class="space-y-1.5 border-t border-gray-800 pt-3">
-              ${opts.map(opt => `
+        // Crea l'HTML dello Slider per questo prodotto
+        let sliderHTML = '';
+        media.forEach(m => {
+            sliderHTML += `<div onclick="openProductModal('${p.id}')" class="w-full h-full flex-shrink-0 media-item cursor-pointer">`;
+            if (m.type === 'video') {
+                sliderHTML += `<video class="w-full h-full object-cover pointer-events-none" autoplay loop muted playsinline webkit-playsinline src="${m.url}"></video>`;
+            } else {
+                let imgUrl = m.url || 'https://images.unsplash.com/photo-1527661591475-527312dd65f5';
+                sliderHTML += `<img class="w-full h-full object-cover pointer-events-none" src="${imgUrl}" />`;
+            }
+            sliderHTML += `</div>`;
+        });
+
+        let badgeHTML = '';
+        if (media.length > 1) {
+            badgeHTML = `<div class="absolute bottom-2 right-2 bg-black/70 backdrop-blur-sm text-white text-[10px] px-2.5 py-1 rounded-full font-bold pointer-events-none z-10 shadow-md">↔ Scorri (${media.length})</div>`;
+        }
+
+        let optionsHTML = '';
+        opts.forEach(opt => {
+            optionsHTML += `
                 <div class="flex justify-between items-center bg-gray-800/50 px-3 py-2 rounded-lg text-xs border border-gray-700/50">
                   <span class="font-medium text-gray-200">${opt.qty}</span>
                   <div class="flex items-center space-x-3">
@@ -421,33 +478,80 @@
                     </button>
                   </div>
                 </div>
-              `).join('')}
+            `;
+        });
+
+        let categoryName = p.category || '';
+        let productName = p.name || '';
+        let productDesc = p.description || 'Prodotto in pronta consegna da ' + p.category;
+
+        // Costruisci l'HTML della singola scheda
+        html += `
+        <div class="bg-gray-900/90 border border-gray-800 rounded-2xl overflow-hidden shadow-lg">
+          
+          <div class="relative w-full h-52 bg-gray-800">
+            <div class="flex overflow-x-auto hide-scrollbar media-slider w-full h-full" style="-webkit-overflow-scrolling: touch;">
+              ${sliderHTML}
+            </div>
+            ${badgeHTML}
+          </div>
+          
+          <div class="p-4 space-y-3">
+            <div onclick="openProductModal('${p.id}')" class="cursor-pointer">
+              <span class="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">${categoryName}</span>
+              <h3 class="font-bold text-base text-white mt-0.5">${productName}</h3>
+              <p class="text-xs text-gray-400 line-clamp-2 mt-1">${formatTextWithMentions(productDesc)}</p>
+            </div>
+            
+            <div class="space-y-1.5 border-t border-gray-800 pt-3">
+              ${optionsHTML}
             </div>
           </div>
         </div>
-      `}).join('');
+        `;
+      });
       
+      container.innerHTML = html;
       lucide.createIcons();
+
+      // Riavvia l'autoplay dei video nei dispositivi mobile
+      setTimeout(() => {
+          const videos = document.querySelectorAll('#products-grid video');
+          videos.forEach(vid => {
+              vid.muted = true;
+              vid.play().catch(e => console.log('Autoplay bloccato', e));
+          });
+      }, 300);
     }
 
     // --- LOGICA MODALE DETTAGLIO PRODOTTO (FULL SCREEN) ---
     function openProductModal(prodId) {
         currentProd = allProducts.find(x => x.id === prodId);
-        if(!currentProd) return;
+        if(!currentProd) {
+            return;
+        }
         
         selectedVariantIndex = 0;
         currentQty = 1;
 
         // 1. Costruisci lo Slider Media per la Modale
         let media = currentProd.media_list;
-        if(typeof media === 'string') try { media = JSON.parse(media); } catch(e) { media = []; }
-        if(!media || media.length === 0) media = [{ url: currentProd.media_url, type: currentProd.media_type }];
+        if(typeof media === 'string') {
+            try { 
+                media = JSON.parse(media); 
+            } catch(e) { 
+                media = []; 
+            }
+        }
+        if(!media || media.length === 0) {
+            media = [{ url: currentProd.media_url, type: currentProd.media_type }];
+        }
         
         let mediaHTML = `<div class="flex overflow-x-auto hide-scrollbar media-slider w-full h-full">`;
         media.forEach(m => {
             mediaHTML += `<div class="w-full h-full flex-shrink-0 media-item">`;
             if(m.type === 'video') {
-                mediaHTML += `<video class="w-full h-full object-cover pointer-events-none" autoplay loop muted playsinline src="${m.url}"></video>`;
+                mediaHTML += `<video class="w-full h-full object-cover pointer-events-none" autoplay loop muted playsinline webkit-playsinline src="${m.url}"></video>`;
             } else {
                 mediaHTML += `<img class="w-full h-full object-cover pointer-events-none" src="${m.url}" />`;
             }
@@ -458,57 +562,96 @@
         if(media.length > 1) {
             mediaHTML += `<div class="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-lg pointer-events-none">1/${media.length} ↔ Scorri</div>`;
         }
-        document.getElementById('pd-media-container').innerHTML = mediaHTML;
+        
+        const mediaContainer = document.getElementById('pd-media-container');
+        mediaContainer.innerHTML = mediaHTML;
 
         // 2. Inserisci i testi
         document.getElementById('pd-category').innerText = currentProd.category;
         document.getElementById('pd-title').innerText = currentProd.name;
-        document.getElementById('pd-desc').innerHTML = formatTextWithMentions(currentProd.description || `Prodotto in pronta consegna da ${currentProd.category}`);
+        
+        let descText = currentProd.description || `Prodotto in pronta consegna da ${currentProd.category}`;
+        document.getElementById('pd-desc').innerHTML = formatTextWithMentions(descText);
 
         // 3. Genera Bottoni Varianti
         let opts = currentProd.price_options;
-        if(typeof opts === 'string') try { opts = JSON.parse(opts); } catch(e) { opts = []; }
-        currentProd.parsedOpts = opts; // Salvo per l'uso successivo
+        if(typeof opts === 'string') {
+            try { 
+                opts = JSON.parse(opts); 
+            } catch(e) { 
+                opts = []; 
+            }
+        }
+        currentProd.parsedOpts = opts;
         
         const varContainer = document.getElementById('pd-variants-list');
-        varContainer.innerHTML = opts.map((opt, idx) => `
-            <div onclick="selectVariant(${idx})" id="var-box-${idx}" class="border border-gray-700 bg-gray-900 rounded-xl p-3 flex justify-between items-center cursor-pointer transition ${idx === 0 ? 'variant-selected' : 'text-gray-300'}">
+        let varHTML = '';
+        opts.forEach((opt, idx) => {
+            let activeClass = idx === 0 ? 'variant-selected' : 'text-gray-300';
+            varHTML += `
+            <div onclick="selectVariant(${idx})" id="var-box-${idx}" class="border border-gray-700 bg-gray-900 rounded-xl p-3 flex justify-between items-center cursor-pointer transition ${activeClass}">
                 <span class="font-bold text-sm">${opt.qty}</span>
                 <span class="font-extrabold text-sm">€${opt.price}</span>
             </div>
-        `).join('');
+            `;
+        });
+        varContainer.innerHTML = varHTML;
 
-        // 4. Genera Prodotti Correlati (Prendi 4 prodotti casuali)
+        // 4. Genera Prodotti Correlati
         const related = allProducts.filter(p => p.id !== prodId).sort(() => 0.5 - Math.random()).slice(0, 4);
-        document.getElementById('pd-related').innerHTML = related.map(p => {
+        const relatedContainer = document.getElementById('pd-related');
+        let relHTML = '';
+        
+        related.forEach(p => {
              let rm = p.media_list; 
-             if(typeof rm === 'string') try { rm = JSON.parse(rm); } catch(e) { rm = []; }
+             if(typeof rm === 'string') {
+                 try { 
+                     rm = JSON.parse(rm); 
+                 } catch(e) { 
+                     rm = []; 
+                 }
+             }
              const firstRm = (rm && rm.length > 0) ? rm[0] : { url: p.media_url, type: p.media_type };
              
-             return `
+             relHTML += `
              <div onclick="closeProductModal(); setTimeout(()=>openProductModal('${p.id}'), 300)" class="bg-gray-800 rounded-xl overflow-hidden cursor-pointer shadow-md">
-                ${firstRm.type === 'video' 
-                    ? `<video class="w-full h-24 object-cover pointer-events-none" muted src="${firstRm.url}"></video>` 
-                    : `<img class="w-full h-24 object-cover pointer-events-none" src="${firstRm.url}" />`}
+             `;
+             if(firstRm.type === 'video') {
+                 relHTML += `<video class="w-full h-24 object-cover pointer-events-none" muted src="${firstRm.url}"></video>`;
+             } else {
+                 relHTML += `<img class="w-full h-24 object-cover pointer-events-none" src="${firstRm.url}" />`;
+             }
+             relHTML += `
                 <div class="p-2 text-xs font-bold text-white truncate">${p.name}</div>
-             </div>`
-        }).join('');
+             </div>`;
+        });
+        relatedContainer.innerHTML = relHTML;
 
         // 5. Aggiorna prezzo totale in basso e apri
         updateBottomBar();
-        const modal = document.getElementById('product-detail-modal');
         
+        const modal = document.getElementById('product-detail-modal');
         modal.classList.remove('hidden');
-        modal.classList.add('flex'); // Assicura che il layout interno sia corretto (IMPORTANTE PER NON BUGGARE LA FOTO)
+        modal.classList.add('flex');
         
         setTimeout(() => {
             modal.classList.remove('translate-y-full');
         }, 10);
+        
+        // Forza l'avvio dei video nella modale
+        setTimeout(() => {
+            const modalVideos = document.querySelectorAll('#product-detail-modal video');
+            modalVideos.forEach(vid => {
+                vid.muted = true; 
+                vid.play().catch(e => console.log('Autoplay modale bloccato', e));
+            });
+        }, 300);
     }
 
     function closeProductModal() {
         const modal = document.getElementById('product-detail-modal');
         modal.classList.add('translate-y-full');
+        
         setTimeout(() => {
             modal.classList.add('hidden');
             modal.classList.remove('flex');
@@ -529,28 +672,39 @@
                 box.classList.add('text-gray-300');
             }
         });
+        
         updateBottomBar();
     }
 
     function changeQty(delta) {
         currentQty = Math.max(1, currentQty + delta);
         updateBottomBar();
-        if(tg) tg.HapticFeedback?.selectionChanged();
+        
+        if(tg && tg.HapticFeedback) {
+            tg.HapticFeedback.selectionChanged();
+        }
     }
 
     function updateBottomBar() {
-        document.getElementById('pd-qty-val').innerText = currentQty;
+        const qtyValElement = document.getElementById('pd-qty-val');
+        const btnPriceElement = document.getElementById('pd-btn-price');
+        
+        qtyValElement.innerText = currentQty;
+        
         if(currentProd && currentProd.parsedOpts && currentProd.parsedOpts[selectedVariantIndex]) {
             const price = currentProd.parsedOpts[selectedVariantIndex].price;
             const total = (price * currentQty).toFixed(2);
-            document.getElementById('pd-btn-price').innerText = `(€${total})`;
+            btnPriceElement.innerText = `(€${total})`;
         } else {
-            document.getElementById('pd-btn-price').innerText = '';
+            btnPriceElement.innerText = '';
         }
     }
 
     function addToCartFromModal() {
-        if(!currentProd || !currentProd.parsedOpts || currentProd.parsedOpts.length === 0) return;
+        if(!currentProd || !currentProd.parsedOpts || currentProd.parsedOpts.length === 0) {
+            return;
+        }
+        
         const opt = currentProd.parsedOpts[selectedVariantIndex];
         addToCart(currentProd.name, opt.qty, opt.price * currentQty, currentQty);
         closeProductModal();
@@ -569,7 +723,9 @@
       badge.innerText = cart.length;
       badge.classList.remove('hidden');
       
-      if (tg) tg.HapticFeedback?.impactOccurred('light');
+      if (tg && tg.HapticFeedback) {
+          tg.HapticFeedback.impactOccurred('light');
+      }
     }
 
     function openCartModal() {
@@ -579,27 +735,37 @@
       }
       
       const list = document.getElementById('cart-items-list');
-      list.innerHTML = cart.map((i, index) => `
-        <div class="flex justify-between items-center bg-gray-900 p-2.5 rounded-xl border border-gray-800 text-xs">
-          <div>
-            <div class="font-bold text-white">${i.name}</div>
-            <div class="text-gray-400">€${i.price}</div>
-          </div>
-          <button onclick="removeFromCart(${index})" class="text-red-400 font-bold p-1">❌</button>
-        </div>
-      `).join('');
+      let cartHTML = '';
+      
+      cart.forEach((i, index) => {
+          cartHTML += `
+            <div class="flex justify-between items-center bg-gray-900 p-2.5 rounded-xl border border-gray-800 text-xs">
+              <div>
+                <div class="font-bold text-white">${i.name}</div>
+                <div class="text-gray-400">€${i.price}</div>
+              </div>
+              <button onclick="removeFromCart(${index})" class="text-red-400 font-bold p-1">❌</button>
+            </div>
+          `;
+      });
+      
+      list.innerHTML = cartHTML;
       
       const total = cart.reduce((sum, item) => sum + item.price, 0);
       document.getElementById('cart-total-price').innerText = `€${total}`;
-      document.getElementById('cart-modal').classList.remove('hidden');
+      
+      const modal = document.getElementById('cart-modal');
+      modal.classList.remove('hidden');
     }
 
     function closeCartModal() {
-        document.getElementById('cart-modal').classList.add('hidden');
+        const modal = document.getElementById('cart-modal');
+        modal.classList.add('hidden');
     }
 
     function removeFromCart(index) {
       cart.splice(index, 1);
+      
       if (cart.length === 0) {
           document.getElementById('cart-badge').classList.add('hidden');
           closeCartModal();
@@ -611,7 +777,9 @@
 
     // --- GESTIONE INVIO ORDINE API ---
     async function submitOrderProcess() {
-      const address = document.getElementById('order-address-input').value.trim();
+      const addressInput = document.getElementById('order-address-input');
+      const address = addressInput.value.trim();
+      
       if (!address) {
           alert("Per favore, inserisci un indirizzo o un luogo di ritrovo valido!");
           return;
@@ -620,25 +788,31 @@
       const total = cart.reduce((sum, item) => sum + item.price, 0);
       const user = tg?.initDataUnsafe?.user || {};
       
+      const orderPayload = {
+          cart: cart, 
+          total: total, 
+          user_id: user.id || 0, 
+          username: user.username || "Anonimo", 
+          address: address 
+      };
+      
       try {
         const res = await fetch("https://telegram-shop-9swy.onrender.com/api/order", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ 
-              cart: cart, 
-              total: total, 
-              user_id: user.id || 0, 
-              username: user.username || "Anonimo", 
-              address: address 
-          })
+          headers: { 
+              "Content-Type": "application/json" 
+          },
+          body: JSON.stringify(orderPayload)
         });
 
         if (res.ok) {
           closeCartModal();
           cart = [];
           document.getElementById('cart-badge').classList.add('hidden');
-          document.getElementById('order-address-input').value = '';
-          document.getElementById('success-panel-modal').classList.remove('hidden');
+          addressInput.value = '';
+          
+          const successModal = document.getElementById('success-panel-modal');
+          successModal.classList.remove('hidden');
         } else {
           alert("Si è verificato un errore durante l'invio dell'ordine.");
         }
@@ -649,14 +823,19 @@
     }
 
     function closeSuccessPanel() {
-        document.getElementById('success-panel-modal').classList.add('hidden');
-        if (tg) tg.close();
+        const successModal = document.getElementById('success-panel-modal');
+        successModal.classList.add('hidden');
+        
+        if (tg) {
+            tg.close();
+        }
     }
-
 
     // --- FILTRO CATEGORIE ---
     function filterCategory(cat, btn) {
-      document.querySelectorAll('.cat-btn').forEach(b => {
+      const allButtons = document.querySelectorAll('.cat-btn');
+      
+      allButtons.forEach(b => {
           b.classList.remove('bg-emerald-500', 'text-black');
           b.classList.add('bg-gray-800', 'text-gray-300');
       });
@@ -669,14 +848,16 @@
       if (cat === 'ALL') {
           renderProducts(allProducts);
       } else {
-          renderProducts(allProducts.filter(p => p.category && p.category.includes(cat)));
+          const filtered = allProducts.filter(p => p.category && p.category.includes(cat));
+          renderProducts(filtered);
       }
     }
 
-
     // --- LOGICA MODALI SECONDARIE (TROFEI, TRACKING, SUPPORTO) ---
     async function openTrophiesModal() {
-      document.getElementById('trophies-modal').classList.remove('hidden');
+      const modal = document.getElementById('trophies-modal');
+      modal.classList.remove('hidden');
+      
       const userId = tg?.initDataUnsafe?.user?.id || 0;
       
       if (!userId || !db) {
@@ -687,25 +868,36 @@
 
       try {
         const { data } = await db.from('users').select('*').eq('telegram_id', userId);
+        
         if (data && data.length > 0) {
           const user = data[0];
           document.getElementById('user-points-val').innerText = user.points || 0;
           
           let trophies = user.trophies || [];
           if (typeof trophies === 'string') {
-              try { trophies = JSON.parse(trophies); } catch(e) { trophies = []; }
+              try { 
+                  trophies = JSON.parse(trophies); 
+              } catch(e) { 
+                  trophies = []; 
+              }
           }
 
+          const listContainer = document.getElementById('user-trophies-list');
+          
           if(trophies.length > 0) {
-              document.getElementById('user-trophies-list').innerHTML = trophies.map(t => `
+              let trophiesHTML = '';
+              trophies.forEach(t => {
+                  trophiesHTML += `
                   <div class="bg-gray-800 border border-gray-700 p-2.5 rounded-xl text-xs font-bold text-amber-300 flex items-center space-x-2">
                       <i data-lucide="trophy" class="w-4 h-4 text-amber-400"></i>
                       <span>${t}</span>
                   </div>
-              `).join('');
+                  `;
+              });
+              listContainer.innerHTML = trophiesHTML;
               lucide.createIcons();
           } else {
-              document.getElementById('user-trophies-list').innerHTML = `<div class="text-xs text-gray-500 text-center py-3">Nessun trofeo sbloccato al momento.</div>`;
+              listContainer.innerHTML = `<div class="text-xs text-gray-500 text-center py-3">Nessun trofeo sbloccato al momento.</div>`;
           }
         }
       } catch(e) {
@@ -714,20 +906,26 @@
     }
 
     function closeTrophiesModal() {
-        document.getElementById('trophies-modal').classList.add('hidden');
+        const modal = document.getElementById('trophies-modal');
+        modal.classList.add('hidden');
     }
 
     function openTrackingModal() {
-        document.getElementById('tracking-modal').classList.remove('hidden');
+        const modal = document.getElementById('tracking-modal');
+        modal.classList.remove('hidden');
     }
 
     function closeTrackingModal() {
-        document.getElementById('tracking-modal').classList.add('hidden');
-        document.getElementById('tracking-result').classList.add('hidden');
+        const modal = document.getElementById('tracking-modal');
+        const result = document.getElementById('tracking-result');
+        
+        modal.classList.add('hidden');
+        result.classList.add('hidden');
     }
 
     async function searchOrderTracking() {
-      const orderId = document.getElementById('tracking-order-id').value.trim();
+      const input = document.getElementById('tracking-order-id');
+      const orderId = input.value.trim();
       const resContainer = document.getElementById('tracking-result');
       
       if (!orderId) {
@@ -740,8 +938,10 @@
       
       try {
         const { data } = await db.from('orders').select('*').eq('id', orderId);
+        
         if (data && data.length > 0) {
           const o = data[0];
+          
           const statusMap = {
               "PENDING": "⏳ In Attesa",
               "ACCEPTED": "✅ Confermato",
@@ -749,14 +949,17 @@
               "CANCELLED": "❌ Annullato"
           };
           
+          const orderStatus = statusMap[o.status] || o.status;
+          const trackingInfo = o.tracking_code || 'In attesa di elaborazione';
+          
           resContainer.innerHTML = `
             <div class="bg-gray-900 border border-gray-800 p-3 rounded-xl text-xs space-y-1.5">
                 <div class="flex justify-between font-bold">
                     <span class="text-white">Ordine #${o.id}</span>
-                    <span class="text-emerald-400">${statusMap[o.status] || o.status}</span>
+                    <span class="text-emerald-400">${orderStatus}</span>
                 </div>
                 <div class="text-gray-300 font-mono bg-gray-800 p-2 rounded-lg mt-2">
-                    <b>Tracking Code / Info:</b><br>${o.tracking_code || 'In attesa di elaborazione'}
+                    <b>Tracking Code / Info:</b><br>${trackingInfo}
                 </div>
             </div>
           `;
@@ -764,17 +967,19 @@
           resContainer.innerHTML = `<div class="text-xs text-red-400 text-center py-2">Nessun ordine trovato con questo numero.</div>`;
         }
       } catch(e) {
-          resContainer.innerHTML = `<div class="text-xs text-red-400 text-center py-2">Errore di rete.</div>`;
+          resContainer.innerHTML = `<div class="text-xs text-red-400 text-center py-2">Errore di rete. Riprova più tardi.</div>`;
       }
     }
 
     function openSupportModal() {
-        document.getElementById('support-modal').classList.remove('hidden');
+        const modal = document.getElementById('support-modal');
+        modal.classList.remove('hidden');
         lucide.createIcons();
     }
 
     function closeSupportModal() {
-        document.getElementById('support-modal').classList.add('hidden');
+        const modal = document.getElementById('support-modal');
+        modal.classList.add('hidden');
     }
 
     // Avvio il caricamento prodotti all'apertura
@@ -782,4 +987,3 @@
   </script>
 </body>
 </html>
-
