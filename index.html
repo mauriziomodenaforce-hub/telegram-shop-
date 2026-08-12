@@ -17,25 +17,30 @@
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
         user-select: none; 
     }
+    
     .drawer { 
         transition: transform 0.3s ease-in-out; 
     }
+    
     .hide-scrollbar::-webkit-scrollbar { 
         display: none; 
     }
+    
     .hide-scrollbar { 
         -ms-overflow-style: none; 
         scrollbar-width: none; 
     }
     
-    /* Regole per lo scorrimento di foto/video */
+    /* Regole per lo scorrimento fluido di foto/video */
     .media-slider { 
         scroll-snap-type: x mandatory; 
         -webkit-overflow-scrolling: touch;
     }
+    
     .media-item { 
         scroll-snap-align: center; 
     }
+    
     .variant-selected { 
         border-color: #10b981 !important; 
         background-color: rgba(16, 185, 129, 0.1) !important; 
@@ -46,7 +51,7 @@
 <body class="pb-24">
 
   <script>
-    // Configurazione Database
+    // Configurazione Database Supabase
     const SUPABASE_URL = "https://hvjzhgixdgozpjqjeipf.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2anpoZ2l4ZGdvenBqcWplaXBmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYwOTg0ODcsImV4cCI6MjEwMTY3NDQ4N30.WsXI7PtlLM4xqffPyWcjZqxrC0nHGmjurIT0cSVNy6U";
     
@@ -57,13 +62,14 @@
         console.error("Errore inizializzazione Supabase", e);
     }
     
+    // Espande l'interfaccia della WebApp di Telegram
     const tg = window.Telegram?.WebApp;
     if (tg) {
         tg.expand();
     }
   </script>
 
-  <!-- NAVBAR -->
+  <!-- HEADER / NAVBAR -->
   <header class="sticky top-0 z-30 bg-[#1e1e1e]/90 backdrop-blur-md px-4 py-3 flex justify-between items-center border-b border-gray-800">
     <div class="flex items-center space-x-3">
       <div class="w-9 h-9 rounded-full bg-cover bg-center border border-emerald-500" style="background-image: url('https://files.catbox.moe/smngwm.png');"></div>
@@ -113,7 +119,9 @@
     </div>
   </aside>
 
-  <!-- MODALE CARRELLO -->
+  <!-- MODALI DI SISTEMA -->
+  
+  <!-- Modale Carrello -->
   <div id="cart-modal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 hidden backdrop-blur-md">
     <div class="bg-[#181818] border border-gray-800 rounded-2xl w-full max-w-sm p-5 space-y-4 shadow-2xl">
       <div class="flex justify-between items-center border-b border-gray-800 pb-3">
@@ -143,7 +151,7 @@
     </div>
   </div>
 
-  <!-- MODALE CONFERMA ORDINE -->
+  <!-- Modale Conferma Ordine -->
   <div id="success-panel-modal" class="fixed inset-0 bg-[#dbeafe] z-50 flex flex-col items-center justify-center p-6 text-center hidden">
     <div class="w-20 h-20 bg-emerald-500 rounded-2xl flex items-center justify-center mb-6 shadow-xl">
       <i data-lucide="check" class="w-12 h-12 text-white stroke-[3]"></i>
@@ -157,7 +165,7 @@
     </button>
   </div>
 
-  <!-- MODALE TROFEI -->
+  <!-- Modale Trofei -->
   <div id="trophies-modal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 hidden backdrop-blur-md">
     <div class="bg-[#181818] border border-gray-800 rounded-2xl w-full max-w-sm p-5 space-y-4 shadow-2xl">
       <div class="flex justify-between items-center border-b border-gray-800 pb-3">
@@ -183,7 +191,7 @@
     </div>
   </div>
 
-  <!-- MODALE TRACKING -->
+  <!-- Modale Tracking -->
   <div id="tracking-modal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 hidden backdrop-blur-md">
     <div class="bg-[#181818] border border-gray-800 rounded-2xl w-full max-w-sm p-5 space-y-4 shadow-2xl">
       <div class="flex justify-between items-center border-b border-gray-800 pb-3">
@@ -209,7 +217,7 @@
     </div>
   </div>
 
-  <!-- MODALE ASSISTENZA / SUPPORTO -->
+  <!-- Modale Assistenza / Supporto -->
   <div id="support-modal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 hidden backdrop-blur-md">
     <div class="bg-[#181818] border border-gray-800 rounded-2xl w-full max-w-sm p-5 space-y-4 shadow-2xl">
       <div class="flex justify-between items-center border-b border-gray-800 pb-3">
@@ -250,12 +258,13 @@
 
   <!-- MODALE DETTAGLIO PRODOTTO SCHERMO INTERO -->
   <div id="product-detail-modal" class="fixed inset-0 bg-[#121212] z-50 hidden flex-col overflow-y-auto hide-scrollbar pb-24 transition-transform duration-300 transform translate-y-full">
+    
     <!-- Tasto Chiudi -->
     <button onclick="closeProductModal()" class="absolute top-4 right-4 bg-black/60 p-2 rounded-full z-10 backdrop-blur-md">
        <i data-lucide="x" class="w-6 h-6 text-white"></i>
     </button>
 
-    <!-- Slider Media (Dentro la Modale) -->
+    <!-- Slider Media nella Modale -->
     <div id="pd-media-container" class="w-full h-[40vh] bg-black relative"></div>
 
     <!-- Contenuto Testuale -->
@@ -268,7 +277,7 @@
             </div>
         </div>
         
-        <!-- Descrizione con TAG Cliccabili (@) -->
+        <!-- Descrizione con TAG Cliccabili -->
         <div class="bg-gray-900/60 border border-gray-800 p-3 rounded-xl">
           <p id="pd-desc" class="text-sm text-gray-300 whitespace-pre-wrap leading-relaxed"></p>
         </div>
@@ -349,20 +358,19 @@
       </div>
     </div>
 
-    <!-- GRIGLIA ORIGINALE A SCHEDE GRANDI (1 Colonna) -->
+    <!-- GRIGLIA PRODOTTI -->
     <div id="products-grid" class="grid grid-cols-1 gap-4">
       <div class="text-center py-8 text-gray-500 text-sm">Caricamento prodotti in corso...</div>
     </div>
   </main>
 
-  <!-- SEZIONE JAVASCRIPT COMPLETAMENTE ESPANSA (NESSUNA COMPRESSIONE) -->
   <script>
-    // --- INIZIALIZZAZIONE ---
+    // --- INIZIALIZZAZIONE LIBRERIE ---
     lucide.createIcons();
     let allProducts = [];
     let cart = [];
     
-    // Variabili Globali per la Modale Dettaglio
+    // Variabili per la Modale
     let currentProd = null;
     let selectedVariantIndex = 0;
     let currentQty = 1;
@@ -371,6 +379,7 @@
     function toggleDrawer() {
       const drawer = document.getElementById('drawer');
       const overlay = document.getElementById('drawer-overlay');
+      
       drawer.classList.toggle('translate-x-full');
       overlay.classList.toggle('hidden');
     }
@@ -384,8 +393,21 @@
         if(!text) {
             return "";
         }
-        // Converte @username in link telegram cliccabili blu
         return text.replace(/@(\w+)/g, '<a href="https://t.me/$1" target="_blank" class="text-blue-400 font-bold hover:underline">@$1</a>');
+    }
+
+    // --- FORZA L'AUTOPLAY DEI VIDEO ---
+    function forceVideosAutoplay() {
+        const videos = document.querySelectorAll('video');
+        videos.forEach(vid => {
+            vid.muted = true;
+            vid.setAttribute('playsinline', '');
+            vid.setAttribute('webkit-playsinline', '');
+            
+            vid.play().catch(err => {
+                console.log("Autoplay nativo bloccato, in attesa di interazione");
+            });
+        });
     }
 
     // --- CARICAMENTO PRODOTTI DAL DATABASE ---
@@ -412,7 +434,7 @@
       }
     }
 
-    // --- RENDER SCHEDE GRANDI (STILE ORIGINALE + CAROSELLO SCORREVOLE) ---
+    // --- RENDER SCHEDE PRODOTTI ---
     function renderProducts(products) {
       const container = document.getElementById('products-grid');
       
@@ -424,7 +446,6 @@
       let html = '';
 
       products.forEach(p => {
-        // Estrai Varianti
         let opts = p.price_options;
         if (typeof opts === 'string') {
             try { 
@@ -435,7 +456,6 @@
         }
         opts = opts || [];
 
-        // Estrai Media
         let media = p.media_list;
         if (typeof media === 'string') {
             try { 
@@ -448,22 +468,26 @@
             media = [{ url: p.media_url, type: p.media_type || 'image' }];
         }
 
-        // Crea l'HTML dello Slider per questo prodotto
+        // COSTRUZIONE DELLO SLIDER MULTIMEDIALE
         let sliderHTML = '';
         media.forEach(m => {
-            sliderHTML += `<div onclick="openProductModal('${p.id}')" class="w-full h-full flex-shrink-0 media-item cursor-pointer">`;
+            sliderHTML += `<div class="w-full h-full flex-shrink-0 media-item relative">`;
+            
             if (m.type === 'video') {
-                sliderHTML += `<video class="w-full h-full object-cover pointer-events-none" autoplay loop muted playsinline webkit-playsinline src="${m.url}"></video>`;
+                sliderHTML += `<video class="w-full h-full object-cover" autoplay loop muted playsinline webkit-playsinline src="${m.url}"></video>`;
             } else {
                 let imgUrl = m.url || 'https://images.unsplash.com/photo-1527661591475-527312dd65f5';
-                sliderHTML += `<img class="w-full h-full object-cover pointer-events-none" src="${imgUrl}" />`;
+                sliderHTML += `<img class="w-full h-full object-cover" src="${imgUrl}" />`;
             }
+            
+            // PELLICOLA INVISIBILE PER CATTURARE IL CLIC (Fix perfetto per i video e slider)
+            sliderHTML += `<div onclick="openProductModal('${p.id}')" class="absolute inset-0 z-10 cursor-pointer"></div>`;
             sliderHTML += `</div>`;
         });
 
         let badgeHTML = '';
         if (media.length > 1) {
-            badgeHTML = `<div class="absolute bottom-2 right-2 bg-black/70 backdrop-blur-sm text-white text-[10px] px-2.5 py-1 rounded-full font-bold pointer-events-none z-10 shadow-md">↔ Scorri (${media.length})</div>`;
+            badgeHTML = `<div class="absolute bottom-2 right-2 bg-black/70 backdrop-blur-sm text-white text-[10px] px-2.5 py-1 rounded-full font-bold z-20 pointer-events-none shadow-md">↔ Scorri (${media.length})</div>`;
         }
 
         let optionsHTML = '';
@@ -485,7 +509,6 @@
         let productName = p.name || '';
         let productDesc = p.description || 'Prodotto in pronta consegna da ' + p.category;
 
-        // Costruisci l'HTML della singola scheda
         html += `
         <div class="bg-gray-900/90 border border-gray-800 rounded-2xl overflow-hidden shadow-lg">
           
@@ -514,15 +537,11 @@
       container.innerHTML = html;
       lucide.createIcons();
 
-      // Riavvia l'autoplay dei video nei dispositivi mobile
       setTimeout(() => {
-          const videos = document.querySelectorAll('#products-grid video');
-          videos.forEach(vid => {
-              vid.muted = true;
-              vid.play().catch(e => console.log('Autoplay bloccato', e));
-          });
+          forceVideosAutoplay();
       }, 300);
     }
+
 
     // --- LOGICA MODALE DETTAGLIO PRODOTTO (FULL SCREEN) ---
     function openProductModal(prodId) {
@@ -534,7 +553,6 @@
         selectedVariantIndex = 0;
         currentQty = 1;
 
-        // 1. Costruisci lo Slider Media per la Modale
         let media = currentProd.media_list;
         if(typeof media === 'string') {
             try { 
@@ -551,29 +569,27 @@
         media.forEach(m => {
             mediaHTML += `<div class="w-full h-full flex-shrink-0 media-item">`;
             if(m.type === 'video') {
-                mediaHTML += `<video class="w-full h-full object-cover pointer-events-none" autoplay loop muted playsinline webkit-playsinline src="${m.url}"></video>`;
+                mediaHTML += `<video class="w-full h-full object-cover" autoplay loop muted playsinline webkit-playsinline src="${m.url}"></video>`;
             } else {
-                mediaHTML += `<img class="w-full h-full object-cover pointer-events-none" src="${m.url}" />`;
+                mediaHTML += `<img class="w-full h-full object-cover" src="${m.url}" />`;
             }
             mediaHTML += `</div>`;
         });
         mediaHTML += `</div>`;
         
         if(media.length > 1) {
-            mediaHTML += `<div class="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-lg pointer-events-none">1/${media.length} ↔ Scorri</div>`;
+            mediaHTML += `<div class="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-lg z-20 pointer-events-none">1/${media.length} ↔ Scorri</div>`;
         }
         
         const mediaContainer = document.getElementById('pd-media-container');
         mediaContainer.innerHTML = mediaHTML;
 
-        // 2. Inserisci i testi
         document.getElementById('pd-category').innerText = currentProd.category;
         document.getElementById('pd-title').innerText = currentProd.name;
         
         let descText = currentProd.description || `Prodotto in pronta consegna da ${currentProd.category}`;
         document.getElementById('pd-desc').innerHTML = formatTextWithMentions(descText);
 
-        // 3. Genera Bottoni Varianti
         let opts = currentProd.price_options;
         if(typeof opts === 'string') {
             try { 
@@ -597,7 +613,6 @@
         });
         varContainer.innerHTML = varHTML;
 
-        // 4. Genera Prodotti Correlati
         const related = allProducts.filter(p => p.id !== prodId).sort(() => 0.5 - Math.random()).slice(0, 4);
         const relatedContainer = document.getElementById('pd-related');
         let relHTML = '';
@@ -617,9 +632,14 @@
              <div onclick="closeProductModal(); setTimeout(()=>openProductModal('${p.id}'), 300)" class="bg-gray-800 rounded-xl overflow-hidden cursor-pointer shadow-md">
              `;
              if(firstRm.type === 'video') {
-                 relHTML += `<video class="w-full h-24 object-cover pointer-events-none" muted src="${firstRm.url}"></video>`;
+                 // Metto l'overlay trasparente anche qui per non far bloccare i video
+                 relHTML += `
+                 <div class="relative w-full h-24">
+                    <video class="w-full h-full object-cover" autoplay loop muted playsinline webkit-playsinline src="${firstRm.url}"></video>
+                    <div class="absolute inset-0 z-10"></div>
+                 </div>`;
              } else {
-                 relHTML += `<img class="w-full h-24 object-cover pointer-events-none" src="${firstRm.url}" />`;
+                 relHTML += `<img class="w-full h-24 object-cover" src="${firstRm.url}" />`;
              }
              relHTML += `
                 <div class="p-2 text-xs font-bold text-white truncate">${p.name}</div>
@@ -627,7 +647,6 @@
         });
         relatedContainer.innerHTML = relHTML;
 
-        // 5. Aggiorna prezzo totale in basso e apri
         updateBottomBar();
         
         const modal = document.getElementById('product-detail-modal');
@@ -636,16 +655,8 @@
         
         setTimeout(() => {
             modal.classList.remove('translate-y-full');
+            forceVideosAutoplay();
         }, 10);
-        
-        // Forza l'avvio dei video nella modale
-        setTimeout(() => {
-            const modalVideos = document.querySelectorAll('#product-detail-modal video');
-            modalVideos.forEach(vid => {
-                vid.muted = true; 
-                vid.play().catch(e => console.log('Autoplay modale bloccato', e));
-            });
-        }, 300);
     }
 
     function closeProductModal() {
@@ -775,6 +786,7 @@
       }
     }
 
+
     // --- GESTIONE INVIO ORDINE API ---
     async function submitOrderProcess() {
       const addressInput = document.getElementById('order-address-input');
@@ -831,6 +843,7 @@
         }
     }
 
+
     // --- FILTRO CATEGORIE ---
     function filterCategory(cat, btn) {
       const allButtons = document.querySelectorAll('.cat-btn');
@@ -852,6 +865,7 @@
           renderProducts(filtered);
       }
     }
+
 
     // --- LOGICA MODALI SECONDARIE (TROFEI, TRACKING, SUPPORTO) ---
     async function openTrophiesModal() {
@@ -982,8 +996,20 @@
         modal.classList.add('hidden');
     }
 
-    // Avvio il caricamento prodotti all'apertura
-    loadProducts();
+    // --- AVVIO APP ---
+    document.addEventListener("DOMContentLoaded", () => {
+        loadProducts();
+        
+        // Assicura l'avvio del banner video principale
+        setTimeout(() => {
+            const banner = document.getElementById('banner-video');
+            if(banner) {
+                banner.muted = true;
+                banner.play().catch(e => console.log('Banner autoplay bloccato', e));
+            }
+        }, 300);
+    });
+
   </script>
 </body>
 </html>
