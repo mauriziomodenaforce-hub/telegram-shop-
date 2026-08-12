@@ -321,10 +321,11 @@
   <main class="p-4 space-y-5">
     
     <!-- Banner Video Principale in alto -->
-    <div class="relative rounded-2xl overflow-hidden border border-gray-800 bg-gray-900 shadow-2xl">
+    <!-- FIX: Aggiunto onclick per forzare play manuale + rimosso pointer-events che bloccava il tocco -->
+    <div class="relative rounded-2xl overflow-hidden border border-gray-800 bg-gray-900 shadow-2xl" onclick="const v = document.getElementById('banner-video'); v.muted=true; v.play();">
       <video id="banner-video" class="w-full h-48 object-cover" autoplay loop muted playsinline webkit-playsinline src="https://files.catbox.moe/2a9rqy.mov"></video>
-      <div class="absolute inset-0 bg-gradient-to-t from-[#121212] via-black/40 to-transparent"></div>
-      <div class="absolute bottom-3 left-4 right-4">
+      <div class="absolute inset-0 bg-gradient-to-t from-[#121212] via-black/40 to-transparent pointer-events-none"></div>
+      <div class="absolute bottom-3 left-4 right-4 pointer-events-none">
         <h1 class="text-2xl font-black text-white tracking-wide">Boston George 420</h1>
         <div class="flex items-center space-x-3 text-xs text-gray-300 mt-1">
           <span class="flex items-center"><i data-lucide="package" class="w-3.5 h-3.5 mr-1 text-emerald-400"></i> <span id="stat-products">--</span> Prodotti</span>
@@ -395,6 +396,21 @@
     let selectedVariantIndex = 0;
     let currentQty = 1;
 
+    // --- FUNZIONE PER FORZARE I VIDEO GLOBALI ---
+    function unlockAllVideos() {
+        const videos = document.querySelectorAll('video');
+        videos.forEach(vid => {
+            vid.muted = true;
+            vid.defaultMuted = true;
+            vid.playsInline = true;
+            vid.play().catch(e => console.log('Video bloccato da policy iOS/Telegram', e));
+        });
+    }
+
+    // Aggiungo sblocco forzato al primo tocco sullo schermo (Salva-vita per iOS)
+    document.body.addEventListener('click', unlockAllVideos, { once: true });
+    document.body.addEventListener('touchstart', unlockAllVideos, { once: true });
+
     // --- FUNZIONI DI BASE UI ---
     function toggleDrawer() {
       const drawer = document.getElementById('drawer');
@@ -413,7 +429,7 @@
         if(!text) {
             return "";
         }
-        // Converte @username in link telegram
+        // Converte @username in link telegram cliccabili blu
         return text.replace(/@(\w+)/g, '<a href="https://t.me/$1" target="_blank" class="text-blue-400 font-bold hover:underline">@$1</a>');
     }
 
@@ -497,7 +513,7 @@
             mediaSliderHTML += `<div onclick="openProductModal('${p.id}')" class="w-full h-full flex-shrink-0 media-item cursor-pointer relative">`;
             
             if (m.type === 'video') {
-                // Video: usa pointer-events-none così non blocca il tocco del dito sul genitore
+                // Video: con pointer-events-none il tocco passa al genitore (div) e non manda in pappa lo swipe
                 mediaSliderHTML += `<video class="w-full h-full object-cover pointer-events-none" autoplay loop muted playsinline webkit-playsinline src="${m.url}"></video>`;
             } else {
                 let imageUrl = m.url || 'https://images.unsplash.com/photo-1527661591475-527312dd65f5';
@@ -563,23 +579,16 @@
       container.innerHTML = htmlContent;
       lucide.createIcons();
 
-      // Forza la riproduzione in background di tutti i video caricati nella griglia
-      setTimeout(() => {
-          const allGridVideos = document.querySelectorAll('#products-grid video');
-          allGridVideos.forEach(vid => {
-              vid.muted = true;
-              vid.setAttribute('playsinline', '');
-              vid.setAttribute('webkit-playsinline', '');
-              vid.play().catch(e => {
-                  console.log('Autoplay griglia bloccato (spesso causato da risparmio energetico batteria iOS)', e);
-              });
-          });
-      }, 300);
+      // Riavvia i video della griglia dopo averla creata
+      setTimeout(unlockAllVideos, 300);
     }
 
 
     // --- LOGICA MODALE DETTAGLIO PRODOTTO (FULL SCREEN) ---
     function openProductModal(prodId) {
+        // Appena l'utente clicca, forziamo uno sblocco di sicurezza video
+        unlockAllVideos();
+
         currentProd = allProducts.find(x => x.id === prodId);
         
         if(!currentProd) {
@@ -699,16 +708,8 @@
             modalElement.classList.remove('translate-y-full'); 
         }, 10);
         
-        // Forza play sui video appena aperti nella modale grande
-        setTimeout(() => {
-            const modaleVideos = document.querySelectorAll('#product-detail-modal video');
-            modaleVideos.forEach(vid => {
-                vid.muted = true;
-                vid.setAttribute('playsinline', '');
-                vid.setAttribute('webkit-playsinline', '');
-                vid.play().catch(e => console.log('Autoplay modale bloccato dal telefono', e));
-            });
-        }, 300);
+        // Sblocca i video interni alla modale
+        setTimeout(unlockAllVideos, 300);
     }
 
     function closeProductModal() {
@@ -1014,19 +1015,8 @@
     // AVVIO AL CARICAMENTO DELLA PAGINA
     // ----------------------------------------------------
     document.addEventListener("DOMContentLoaded", () => {
-        // Carica la griglia dei prodotti
         loadProducts();
-        
-        // Forza l'autoplay sul banner video principale (risolve i blocchi iOS)
-        setTimeout(() => {
-            const banner = document.getElementById('banner-video');
-            if(banner) { 
-                banner.muted = true; 
-                banner.setAttribute('playsinline', '');
-                banner.setAttribute('webkit-playsinline', '');
-                banner.play().catch(e => console.log('Autoplay del banner bloccato da iOS', e)); 
-            }
-        }, 500);
+        setTimeout(unlockAllVideos, 500);
     });
 
   </script>
