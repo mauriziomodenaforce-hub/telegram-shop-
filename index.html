@@ -17,16 +17,33 @@
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
         user-select: none; 
     }
+    
     .drawer { 
         transition: transform 0.3s ease-in-out; 
     }
+    
     .hide-scrollbar::-webkit-scrollbar { 
         display: none; 
     }
+    
     .hide-scrollbar { 
         -ms-overflow-style: none; 
         scrollbar-width: none; 
     }
+    
+    .media-slider { 
+        display: flex;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory; 
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .media-item { 
+        flex: 0 0 100%;
+        scroll-snap-align: start; 
+        position: relative;
+    }
+    
     .variant-selected { 
         border-color: #10b981 !important; 
         background-color: rgba(16, 185, 129, 0.1) !important; 
@@ -37,7 +54,9 @@
 <body class="pb-24">
 
   <script>
-    // Configurazione Database
+    // ----------------------------------------------------
+    // CONFIGURAZIONE DATABASE
+    // ----------------------------------------------------
     const SUPABASE_URL = "https://hvjzhgixdgozpjqjeipf.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2anpoZ2l4ZGdvenBqcWplaXBmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYwOTg0ODcsImV4cCI6MjEwMTY3NDQ4N30.WsXI7PtlLM4xqffPyWcjZqxrC0nHGmjurIT0cSVNy6U";
     
@@ -54,6 +73,9 @@
     }
   </script>
 
+  <!-- ---------------------------------------------------- -->
+  <!-- NAVBAR / INTESTAZIONE                                -->
+  <!-- ---------------------------------------------------- -->
   <header class="sticky top-0 z-30 bg-[#1e1e1e]/90 backdrop-blur-md px-4 py-3 flex justify-between items-center border-b border-gray-800">
     <div class="flex items-center space-x-3">
       <div class="w-9 h-9 rounded-full bg-cover bg-center border border-emerald-500" style="background-image: url('https://files.catbox.moe/smngwm.png');"></div>
@@ -70,6 +92,9 @@
     </div>
   </header>
 
+  <!-- ---------------------------------------------------- -->
+  <!-- MENU LATERALE A SCOMPARSA (DRAWER)                   -->
+  <!-- ---------------------------------------------------- -->
   <div id="drawer-overlay" onclick="toggleDrawer()" class="fixed inset-0 bg-black/60 z-40 hidden backdrop-blur-sm"></div>
   <aside id="drawer" class="fixed top-0 right-0 w-72 h-full bg-[#181818] z-50 transform translate-x-full drawer p-5 flex flex-col justify-between border-l border-gray-800">
     <div>
@@ -102,6 +127,11 @@
     </div>
   </aside>
 
+  <!-- ---------------------------------------------------- -->
+  <!-- MODALI PRINCIPALI DEL SITO                           -->
+  <!-- ---------------------------------------------------- -->
+  
+  <!-- Modale Carrello -->
   <div id="cart-modal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 hidden backdrop-blur-md">
     <div class="bg-[#181818] border border-gray-800 rounded-2xl w-full max-w-sm p-5 space-y-4 shadow-2xl">
       <div class="flex justify-between items-center border-b border-gray-800 pb-3">
@@ -131,6 +161,7 @@
     </div>
   </div>
 
+  <!-- Modale Conferma Ordine Inviato -->
   <div id="success-panel-modal" class="fixed inset-0 bg-[#dbeafe] z-50 flex flex-col items-center justify-center p-6 text-center hidden">
     <div class="w-20 h-20 bg-emerald-500 rounded-2xl flex items-center justify-center mb-6 shadow-xl">
       <i data-lucide="check" class="w-12 h-12 text-white stroke-[3]"></i>
@@ -144,6 +175,7 @@
     </button>
   </div>
 
+  <!-- Modale Trofei -->
   <div id="trophies-modal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 hidden backdrop-blur-md">
     <div class="bg-[#181818] border border-gray-800 rounded-2xl w-full max-w-sm p-5 space-y-4 shadow-2xl">
       <div class="flex justify-between items-center border-b border-gray-800 pb-3">
@@ -169,6 +201,7 @@
     </div>
   </div>
 
+  <!-- Modale Tracking -->
   <div id="tracking-modal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 hidden backdrop-blur-md">
     <div class="bg-[#181818] border border-gray-800 rounded-2xl w-full max-w-sm p-5 space-y-4 shadow-2xl">
       <div class="flex justify-between items-center border-b border-gray-800 pb-3">
@@ -194,6 +227,7 @@
     </div>
   </div>
 
+  <!-- Modale Assistenza / Supporto -->
   <div id="support-modal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 hidden backdrop-blur-md">
     <div class="bg-[#181818] border border-gray-800 rounded-2xl w-full max-w-sm p-5 space-y-4 shadow-2xl">
       <div class="flex justify-between items-center border-b border-gray-800 pb-3">
@@ -232,13 +266,20 @@
   </div>
 
 
+  <!-- ---------------------------------------------------- -->
+  <!-- MODALE DETTAGLIO PRODOTTO SCHERMO INTERO             -->
+  <!-- ---------------------------------------------------- -->
   <div id="product-detail-modal" class="fixed inset-0 bg-[#121212] z-50 hidden flex-col overflow-y-auto hide-scrollbar pb-24 transition-transform duration-300 transform translate-y-full">
+    
+    <!-- Tasto Chiudi Modale -->
     <button onclick="closeProductModal()" class="absolute top-4 right-4 bg-black/60 p-2 rounded-full z-10 backdrop-blur-md">
        <i data-lucide="x" class="w-6 h-6 text-white"></i>
     </button>
 
+    <!-- Contenitore Immagine/Video Modale -->
     <div id="pd-media-container" class="w-full h-[40vh] bg-black relative"></div>
 
+    <!-- Contenuto Testuale Modale -->
     <div class="p-4 space-y-4">
         <div>
             <span id="pd-category" class="text-[10px] uppercase font-bold text-emerald-400 tracking-wider"></span>
@@ -248,6 +289,7 @@
             </div>
         </div>
         
+        <!-- Descrizione con TAG Cliccabili -->
         <div class="bg-gray-900/60 border border-gray-800 p-3 rounded-xl">
           <p id="pd-desc" class="text-sm text-gray-300 whitespace-pre-wrap leading-relaxed"></p>
         </div>
@@ -259,6 +301,7 @@
         <div id="pd-related" class="grid grid-cols-2 gap-3 mb-8"></div>
     </div>
 
+    <!-- Barra Acquisto Fissa sul fondo -->
     <div class="fixed bottom-0 left-0 right-0 bg-[#1e1e1e] border-t border-gray-800 p-4 flex items-center space-x-3 z-20 pb-safe">
         <div class="flex items-center bg-gray-900 border border-gray-700 rounded-xl px-2 py-2">
             <button onclick="changeQty(-1)" class="text-white text-xl px-3 hover:text-emerald-400 transition">-</button>
@@ -272,8 +315,12 @@
   </div>
 
 
+  <!-- ---------------------------------------------------- -->
+  <!-- CONTENUTO PRINCIPALE DELLA VETRINA (HOME)            -->
+  <!-- ---------------------------------------------------- -->
   <main class="p-4 space-y-5">
     
+    <!-- Banner Video Principale in alto -->
     <div class="relative rounded-2xl overflow-hidden border border-gray-800 bg-gray-900 shadow-2xl">
       <video id="banner-video" class="w-full h-48 object-cover" autoplay loop muted playsinline webkit-playsinline src="https://files.catbox.moe/2a9rqy.mov"></video>
       <div class="absolute inset-0 bg-gradient-to-t from-[#121212] via-black/40 to-transparent"></div>
@@ -287,6 +334,7 @@
       </div>
     </div>
 
+    <!-- Scheda Informativa -->
     <div class="bg-gray-900/80 border border-gray-800 rounded-2xl p-4 space-y-2 text-sm text-gray-300 shadow-md">
       <p class="font-bold text-white">👋 Benvenuto nello shop di Boston George 420!</p>
       <p class="text-xs text-gray-400">📦 Tutti i prodotti in pronta consegna con spedizioni riservate o ritrovo sul posto.</p>
@@ -296,6 +344,7 @@
       </div>
     </div>
 
+    <!-- Bottoni di Azione -->
     <div class="grid grid-cols-2 gap-3">
       <button onclick="scrollToProducts()" class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 text-black font-extrabold py-3.5 px-3 rounded-xl flex items-center justify-center space-x-1.5 shadow-lg shadow-emerald-500/20 text-xs">
         <i data-lucide="shopping-bag" class="w-4 h-4"></i>
@@ -307,6 +356,7 @@
       </button>
     </div>
 
+    <!-- Filtri delle Categorie -->
     <div class="space-y-3 pt-2" id="products-section">
       <div class="flex justify-between items-center">
         <h2 class="text-lg font-bold text-white tracking-wide">Catalogo Prodotti</h2>
@@ -323,18 +373,24 @@
       </div>
     </div>
 
+    <!-- Griglia dei Prodotti (Caricata dinamicamente) -->
     <div id="products-grid" class="grid grid-cols-1 gap-4">
       <div class="text-center py-8 text-gray-500 text-sm">Caricamento prodotti in corso...</div>
     </div>
   </main>
 
+  <!-- ---------------------------------------------------- -->
+  <!-- MOTORE DEL SITO (TUTTO IL JAVASCRIPT ESPANSO)        -->
+  <!-- ---------------------------------------------------- -->
   <script>
-    // --- INIZIALIZZAZIONE ---
+    
+    // Inizializza le icone
     lucide.createIcons();
+    
     let allProducts = [];
     let cart = [];
     
-    // Variabili per la Modale Dettaglio
+    // Variabili per lo stato della Modale Dettaglio
     let currentProd = null;
     let selectedVariantIndex = 0;
     let currentQty = 1;
@@ -357,6 +413,7 @@
         if(!text) {
             return "";
         }
+        // Converte @username in link telegram
         return text.replace(/@(\w+)/g, '<a href="https://t.me/$1" target="_blank" class="text-blue-400 font-bold hover:underline">@$1</a>');
     }
 
@@ -374,6 +431,20 @@
         }
         
         allProducts = data || [];
+        
+        // Regola speciale: Sposta i prodotti "Meet Up" in cima alla lista
+        allProducts.sort((a, b) => {
+            const aMeet = (a.category || '').includes('Meet Up');
+            const bMeet = (b.category || '').includes('Meet Up');
+            if (aMeet && !bMeet) {
+                return -1;
+            }
+            if (!aMeet && bMeet) {
+                return 1;
+            }
+            return 0;
+        });
+
         document.getElementById('stat-products').innerText = allProducts.length;
         renderProducts(allProducts);
         
@@ -384,7 +455,7 @@
       }
     }
 
-    // --- RENDER SCHEDE PRODOTTI (IL CODICE ORIGINALE PERFETTAMENTE FUNZIONANTE) ---
+    // --- RENDER SCHEDE PRODOTTI NELLA HOME ---
     function renderProducts(products) {
       const container = document.getElementById('products-grid');
       
@@ -393,9 +464,10 @@
         return;
       }
 
-      let html = '';
+      let htmlContent = '';
 
       products.forEach(p => {
+        // Parsing delle opzioni di prezzo
         let opts = p.price_options;
         if (typeof opts === 'string') {
             try { 
@@ -406,6 +478,7 @@
         }
         opts = opts || [];
 
+        // Parsing dei file multimediali (foto/video multipli)
         let media = p.media_list;
         if (typeof media === 'string') {
             try { 
@@ -417,12 +490,33 @@
         if (!media || media.length === 0) {
             media = [{ url: p.media_url, type: p.media_type || 'image' }];
         }
-        
-        const firstMedia = media[0];
 
-        let optionsHTML = '';
+        // Costruiamo le immagini/video per questa singola scheda
+        let mediaSliderHTML = '';
+        media.forEach(m => {
+            mediaSliderHTML += `<div onclick="openProductModal('${p.id}')" class="w-full h-full flex-shrink-0 media-item cursor-pointer relative">`;
+            
+            if (m.type === 'video') {
+                // Video: usa pointer-events-none così non blocca il tocco del dito sul genitore
+                mediaSliderHTML += `<video class="w-full h-full object-cover pointer-events-none" autoplay loop muted playsinline webkit-playsinline src="${m.url}"></video>`;
+            } else {
+                let imageUrl = m.url || 'https://images.unsplash.com/photo-1527661591475-527312dd65f5';
+                mediaSliderHTML += `<img class="w-full h-full object-cover pointer-events-none" src="${imageUrl}" />`;
+            }
+            
+            mediaSliderHTML += `</div>`;
+        });
+
+        // Etichetta del carosello (se ci sono più foto)
+        let scorriBadge = '';
+        if (media.length > 1) {
+            scorriBadge = `<div class="absolute bottom-2 right-2 bg-black/70 backdrop-blur-sm text-white text-[10px] px-2.5 py-1 rounded-full font-bold z-10 pointer-events-none shadow-md">↔ Scorri (${media.length})</div>`;
+        }
+
+        // Costruiamo i bottoni "+ Aggiungi" per ogni variante
+        let bottoniHTML = '';
         opts.forEach(opt => {
-            optionsHTML += `
+            bottoniHTML += `
                 <div class="flex justify-between items-center bg-gray-800/50 px-3 py-2 rounded-lg text-xs border border-gray-700/50">
                   <span class="font-medium text-gray-200">${opt.qty}</span>
                   <div class="flex items-center space-x-3">
@@ -435,43 +529,59 @@
             `;
         });
 
-        let categoryName = p.category || '';
-        let productName = p.name || '';
-        let productDesc = p.description || 'Prodotto in pronta consegna da ' + p.category;
+        let catLabel = p.category || '';
+        let prodName = p.name || '';
+        let prodDesc = p.description || 'Prodotto in pronta consegna da ' + p.category;
 
-        // VECCHIO CODICE PURO: NIENTE OVERLAY, NIENTE BLOCCHI AI VIDEO.
-        html += `
+        // Componi l'intero blocco della scheda
+        htmlContent += `
         <div class="bg-gray-900/90 border border-gray-800 rounded-2xl overflow-hidden shadow-lg">
           
-          <div onclick="openProductModal('${p.id}')" class="cursor-pointer relative w-full h-52 bg-gray-800">
-             ${firstMedia.type === 'video' 
-               ? `<video class="w-full h-full object-cover" autoplay loop muted playsinline webkit-playsinline src="${firstMedia.url}"></video>`
-               : `<img class="w-full h-full object-cover" src="${firstMedia.url || 'https://images.unsplash.com/photo-1527661591475-527312dd65f5'}" />`}
+          <!-- Contenitore della foto che si può scorrere -->
+          <div class="relative w-full h-52 bg-gray-800">
+            <div class="flex overflow-x-auto hide-scrollbar media-slider w-full h-full">
+              ${mediaSliderHTML}
+            </div>
+            ${scorriBadge}
           </div>
           
           <div class="p-4 space-y-3">
             <div onclick="openProductModal('${p.id}')" class="cursor-pointer">
-              <span class="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">${categoryName}</span>
-              <h3 class="font-bold text-base text-white mt-0.5">${productName}</h3>
-              <p class="text-xs text-gray-400 line-clamp-2 mt-1">${formatTextWithMentions(productDesc)}</p>
+              <span class="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">${catLabel}</span>
+              <h3 class="font-bold text-base text-white mt-0.5">${prodName}</h3>
+              <p class="text-xs text-gray-400 line-clamp-2 mt-1">${formatTextWithMentions(prodDesc)}</p>
             </div>
             
             <div class="space-y-1.5 border-t border-gray-800 pt-3">
-              ${optionsHTML}
+              ${bottoniHTML}
             </div>
           </div>
         </div>
         `;
       });
       
-      container.innerHTML = html;
+      container.innerHTML = htmlContent;
       lucide.createIcons();
+
+      // Forza la riproduzione in background di tutti i video caricati nella griglia
+      setTimeout(() => {
+          const allGridVideos = document.querySelectorAll('#products-grid video');
+          allGridVideos.forEach(vid => {
+              vid.muted = true;
+              vid.setAttribute('playsinline', '');
+              vid.setAttribute('webkit-playsinline', '');
+              vid.play().catch(e => {
+                  console.log('Autoplay griglia bloccato (spesso causato da risparmio energetico batteria iOS)', e);
+              });
+          });
+      }, 300);
     }
 
 
     // --- LOGICA MODALE DETTAGLIO PRODOTTO (FULL SCREEN) ---
     function openProductModal(prodId) {
         currentProd = allProducts.find(x => x.id === prodId);
+        
         if(!currentProd) {
             return;
         }
@@ -479,6 +589,7 @@
         selectedVariantIndex = 0;
         currentQty = 1;
 
+        // Costruisci le foto/video in grande dentro la modale
         let media = currentProd.media_list;
         if(typeof media === 'string') {
             try { 
@@ -491,24 +602,35 @@
             media = [{ url: currentProd.media_url, type: currentProd.media_type }];
         }
         
-        const firstMedia = media[0];
+        let modaleMediaHTML = `<div class="flex overflow-x-auto hide-scrollbar media-slider w-full h-full">`;
         
-        let mediaHTML = '';
-        if(firstMedia.type === 'video') {
-             mediaHTML = `<video class="w-full h-full object-cover" autoplay loop muted playsinline webkit-playsinline src="${firstMedia.url}"></video>`;
-        } else {
-             mediaHTML = `<img class="w-full h-full object-cover" src="${firstMedia.url}" />`;
+        media.forEach(m => {
+            modaleMediaHTML += `<div class="w-full h-full flex-shrink-0 media-item relative">`;
+            if(m.type === 'video') {
+                modaleMediaHTML += `<video class="w-full h-full object-cover pointer-events-none" autoplay loop muted playsinline webkit-playsinline src="${m.url}"></video>`;
+            } else {
+                modaleMediaHTML += `<img class="w-full h-full object-cover pointer-events-none" src="${m.url}" />`;
+            }
+            modaleMediaHTML += `</div>`;
+        });
+        
+        modaleMediaHTML += `</div>`;
+        
+        if(media.length > 1) {
+            modaleMediaHTML += `<div class="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-lg z-10 pointer-events-none">1/${media.length} ↔ Scorri</div>`;
         }
         
         const mediaContainer = document.getElementById('pd-media-container');
-        mediaContainer.innerHTML = mediaHTML;
+        mediaContainer.innerHTML = modaleMediaHTML;
 
+        // Inserisci testi della modale
         document.getElementById('pd-category').innerText = currentProd.category;
         document.getElementById('pd-title').innerText = currentProd.name;
         
-        let descText = currentProd.description || `Prodotto in pronta consegna da ${currentProd.category}`;
-        document.getElementById('pd-desc').innerHTML = formatTextWithMentions(descText);
+        let descToUse = currentProd.description || `Prodotto in pronta consegna da ${currentProd.category}`;
+        document.getElementById('pd-desc').innerHTML = formatTextWithMentions(descToUse);
 
+        // Prepara le varianti cliccabili all'interno della modale
         let opts = currentProd.price_options;
         if(typeof opts === 'string') {
             try { 
@@ -517,24 +639,27 @@
                 opts = []; 
             }
         }
-        currentProd.parsedOpts = opts;
+        currentProd.parsedOpts = opts; 
         
         const varContainer = document.getElementById('pd-variants-list');
-        let varHTML = '';
+        let variantiHTML = '';
+        
         opts.forEach((opt, idx) => {
-            let activeClass = idx === 0 ? 'variant-selected' : 'text-gray-300';
-            varHTML += `
-            <div onclick="selectVariant(${idx})" id="var-box-${idx}" class="border border-gray-700 bg-gray-900 rounded-xl p-3 flex justify-between items-center cursor-pointer transition ${activeClass}">
+            let activeStyle = idx === 0 ? 'variant-selected' : 'text-gray-300';
+            variantiHTML += `
+            <div onclick="selectVariant(${idx})" id="var-box-${idx}" class="border border-gray-700 bg-gray-900 rounded-xl p-3 flex justify-between items-center cursor-pointer transition ${activeStyle}">
                 <span class="font-bold text-sm">${opt.qty}</span>
                 <span class="font-extrabold text-sm">€${opt.price}</span>
             </div>
             `;
         });
-        varContainer.innerHTML = varHTML;
+        
+        varContainer.innerHTML = variantiHTML;
 
+        // Calcola e inserisci i prodotti correlati casuali a fondo pagina
         const related = allProducts.filter(p => p.id !== prodId).sort(() => 0.5 - Math.random()).slice(0, 4);
         const relatedContainer = document.getElementById('pd-related');
-        let relHTML = '';
+        let correlatiHTML = '';
         
         related.forEach(p => {
              let rm = p.media_list; 
@@ -545,40 +670,54 @@
                      rm = []; 
                  }
              }
-             const relMedia = (rm && rm.length > 0) ? rm[0] : { url: p.media_url, type: p.media_type };
+             const firstRm = (rm && rm.length > 0) ? rm[0] : { url: p.media_url, type: p.media_type };
              
-             relHTML += `
+             correlatiHTML += `
              <div onclick="closeProductModal(); setTimeout(()=>openProductModal('${p.id}'), 300)" class="bg-gray-800 rounded-xl overflow-hidden cursor-pointer shadow-md">
              `;
-             if(relMedia.type === 'video') {
-                 relHTML += `<video class="w-full h-24 object-cover" autoplay loop muted playsinline webkit-playsinline src="${relMedia.url}"></video>`;
+             if(firstRm.type === 'video') {
+                 correlatiHTML += `<video class="w-full h-24 object-cover pointer-events-none" autoplay loop muted playsinline webkit-playsinline src="${firstRm.url}"></video>`;
              } else {
-                 relHTML += `<img class="w-full h-24 object-cover" src="${relMedia.url}" />`;
+                 correlatiHTML += `<img class="w-full h-24 object-cover pointer-events-none" src="${firstRm.url}" />`;
              }
-             relHTML += `
+             correlatiHTML += `
                 <div class="p-2 text-xs font-bold text-white truncate">${p.name}</div>
              </div>`;
         });
-        relatedContainer.innerHTML = relHTML;
+        
+        relatedContainer.innerHTML = correlatiHTML;
 
+        // Calcola totale del bottone
         updateBottomBar();
         
-        const modal = document.getElementById('product-detail-modal');
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
+        // Apre visivamente la modale (animazione a comparsa dal basso)
+        const modalElement = document.getElementById('product-detail-modal');
+        modalElement.classList.remove('hidden');
+        modalElement.classList.add('flex');
         
-        setTimeout(() => {
-            modal.classList.remove('translate-y-full');
+        setTimeout(() => { 
+            modalElement.classList.remove('translate-y-full'); 
         }, 10);
+        
+        // Forza play sui video appena aperti nella modale grande
+        setTimeout(() => {
+            const modaleVideos = document.querySelectorAll('#product-detail-modal video');
+            modaleVideos.forEach(vid => {
+                vid.muted = true;
+                vid.setAttribute('playsinline', '');
+                vid.setAttribute('webkit-playsinline', '');
+                vid.play().catch(e => console.log('Autoplay modale bloccato dal telefono', e));
+            });
+        }, 300);
     }
 
     function closeProductModal() {
-        const modal = document.getElementById('product-detail-modal');
-        modal.classList.add('translate-y-full');
+        const modalElement = document.getElementById('product-detail-modal');
+        modalElement.classList.add('translate-y-full');
         
         setTimeout(() => {
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
+            modalElement.classList.add('hidden');
+            modalElement.classList.remove('flex');
         }, 300);
     }
 
@@ -588,39 +727,34 @@
         
         opts.forEach((_, i) => {
             const box = document.getElementById(`var-box-${i}`);
-            if(i === idx) {
-                box.classList.add('variant-selected');
-                box.classList.remove('text-gray-300');
-            } else {
-                box.classList.remove('variant-selected');
-                box.classList.add('text-gray-300');
+            if(i === idx) { 
+                box.classList.add('variant-selected'); 
+                box.classList.remove('text-gray-300'); 
+            } else { 
+                box.classList.remove('variant-selected'); 
+                box.classList.add('text-gray-300'); 
             }
         });
         
         updateBottomBar();
     }
 
-    function changeQty(delta) {
-        currentQty = Math.max(1, currentQty + delta);
-        updateBottomBar();
+    function changeQty(delta) { 
+        currentQty = Math.max(1, currentQty + delta); 
+        updateBottomBar(); 
         
         if(tg && tg.HapticFeedback) {
             tg.HapticFeedback.selectionChanged();
         }
     }
-
+    
     function updateBottomBar() {
-        const qtyValElement = document.getElementById('pd-qty-val');
-        const btnPriceElement = document.getElementById('pd-btn-price');
-        
-        qtyValElement.innerText = currentQty;
+        document.getElementById('pd-qty-val').innerText = currentQty;
         
         if(currentProd && currentProd.parsedOpts && currentProd.parsedOpts[selectedVariantIndex]) {
             const price = currentProd.parsedOpts[selectedVariantIndex].price;
             const total = (price * currentQty).toFixed(2);
-            btnPriceElement.innerText = `(€${total})`;
-        } else {
-            btnPriceElement.innerText = '';
+            document.getElementById('pd-btn-price').innerText = `(€${total})`;
         }
     }
 
@@ -634,8 +768,7 @@
         closeProductModal();
     }
 
-
-    // --- LOGICA CARRELLO ---
+    // --- LOGICA DEL CARRELLO ---
     function addToCart(name, qtyLabel, finalPrice, numericQty = 1) {
       cart.push({ 
           name: `${name} - ${qtyLabel}`, 
@@ -644,7 +777,7 @@
       });
       
       const badge = document.getElementById('cart-badge');
-      badge.innerText = cart.length;
+      badge.innerText = cart.length; 
       badge.classList.remove('hidden');
       
       if (tg && tg.HapticFeedback) {
@@ -653,16 +786,16 @@
     }
 
     function openCartModal() {
-      if (cart.length === 0) {
-          alert("Il carrello è vuoto!");
-          return;
+      if (cart.length === 0) { 
+          alert("Il carrello è vuoto!"); 
+          return; 
       }
       
       const list = document.getElementById('cart-items-list');
-      let cartHTML = '';
+      let righeCarrello = '';
       
       cart.forEach((i, index) => {
-          cartHTML += `
+          righeCarrello += `
             <div class="flex justify-between items-center bg-gray-900 p-2.5 rounded-xl border border-gray-800 text-xs">
               <div>
                 <div class="font-bold text-white">${i.name}</div>
@@ -673,46 +806,43 @@
           `;
       });
       
-      list.innerHTML = cartHTML;
+      list.innerHTML = righeCarrello;
       
-      const total = cart.reduce((sum, item) => sum + item.price, 0);
-      document.getElementById('cart-total-price').innerText = `€${total}`;
+      const sum = cart.reduce((tot, item) => tot + item.price, 0);
+      document.getElementById('cart-total-price').innerText = `€${sum}`;
       
-      const modal = document.getElementById('cart-modal');
-      modal.classList.remove('hidden');
+      document.getElementById('cart-modal').classList.remove('hidden');
     }
 
-    function closeCartModal() {
-        const modal = document.getElementById('cart-modal');
-        modal.classList.add('hidden');
+    function closeCartModal() { 
+        document.getElementById('cart-modal').classList.add('hidden'); 
     }
-
+    
     function removeFromCart(index) {
       cart.splice(index, 1);
-      
-      if (cart.length === 0) {
-          document.getElementById('cart-badge').classList.add('hidden');
-          closeCartModal();
-      } else {
-          document.getElementById('cart-badge').innerText = cart.length;
-          openCartModal();
+      if (cart.length === 0) { 
+          document.getElementById('cart-badge').classList.add('hidden'); 
+          closeCartModal(); 
+      } else { 
+          document.getElementById('cart-badge').innerText = cart.length; 
+          openCartModal(); 
       }
     }
 
-    // --- GESTIONE INVIO ORDINE API ---
+    // --- INVIO ORDINE AL SERVER ---
     async function submitOrderProcess() {
       const addressInput = document.getElementById('order-address-input');
       const address = addressInput.value.trim();
       
-      if (!address) {
-          alert("Per favore, inserisci un indirizzo o un luogo di ritrovo valido!");
-          return;
+      if (!address) { 
+          alert("Inserisci un indirizzo o luogo di ritrovo valido!"); 
+          return; 
       }
-
+      
       const total = cart.reduce((sum, item) => sum + item.price, 0);
       const user = tg?.initDataUnsafe?.user || {};
       
-      const orderPayload = {
+      const payload = { 
           cart: cart, 
           total: total, 
           user_id: user.id || 0, 
@@ -722,106 +852,91 @@
       
       try {
         const res = await fetch("https://telegram-shop-9swy.onrender.com/api/order", {
-          method: "POST",
-          headers: { 
-              "Content-Type": "application/json" 
-          },
-          body: JSON.stringify(orderPayload)
+          method: "POST", 
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
         });
-
+        
         if (res.ok) {
-          closeCartModal();
-          cart = [];
-          document.getElementById('cart-badge').classList.add('hidden');
+          closeCartModal(); 
+          cart = []; 
+          document.getElementById('cart-badge').classList.add('hidden'); 
           addressInput.value = '';
-          
-          const successModal = document.getElementById('success-panel-modal');
-          successModal.classList.remove('hidden');
-        } else {
-          alert("Si è verificato un errore durante l'invio dell'ordine.");
+          document.getElementById('success-panel-modal').classList.remove('hidden');
+        } else { 
+            alert("Errore durante l'invio dell'ordine. Riprova."); 
         }
-      } catch (e) {
-          console.error(e);
-          alert("Errore di connessione con il server.");
+      } catch (e) { 
+          alert("Errore di connessione. Verifica la tua rete."); 
       }
     }
 
-    function closeSuccessPanel() {
-        const successModal = document.getElementById('success-panel-modal');
-        successModal.classList.add('hidden');
-        
+    function closeSuccessPanel() { 
+        document.getElementById('success-panel-modal').classList.add('hidden'); 
         if (tg) {
             tg.close();
         }
     }
 
-    // --- FILTRO CATEGORIE ---
+    // --- FILTRO DELLE CATEGORIE ---
     function filterCategory(cat, btn) {
       const allButtons = document.querySelectorAll('.cat-btn');
       
-      allButtons.forEach(b => {
-          b.classList.remove('bg-emerald-500', 'text-black');
-          b.classList.add('bg-gray-800', 'text-gray-300');
+      allButtons.forEach(b => { 
+          b.classList.remove('bg-emerald-500', 'text-black'); 
+          b.classList.add('bg-gray-800', 'text-gray-300'); 
       });
       
-      if (btn) {
-          btn.classList.remove('bg-gray-800', 'text-gray-300');
-          btn.classList.add('bg-emerald-500', 'text-black');
+      if (btn) { 
+          btn.classList.remove('bg-gray-800', 'text-gray-300'); 
+          btn.classList.add('bg-emerald-500', 'text-black'); 
       }
-
-      if (cat === 'ALL') {
-          renderProducts(allProducts);
-      } else {
-          const filtered = allProducts.filter(p => p.category && p.category.includes(cat));
-          renderProducts(filtered);
+      
+      if (cat === 'ALL') { 
+          renderProducts(allProducts); 
+      } else { 
+          renderProducts(allProducts.filter(p => p.category && p.category.includes(cat))); 
       }
     }
 
-    // --- LOGICA MODALI SECONDARIE (TROFEI, TRACKING, SUPPORTO) ---
+    // --- MODALE PUNTI E TROFEI ---
     async function openTrophiesModal() {
-      const modal = document.getElementById('trophies-modal');
-      modal.classList.remove('hidden');
-      
+      document.getElementById('trophies-modal').classList.remove('hidden');
       const userId = tg?.initDataUnsafe?.user?.id || 0;
       
-      if (!userId || !db) {
-          document.getElementById('user-points-val').innerText = "50";
-          document.getElementById('user-trophies-list').innerHTML = `<div class="bg-gray-800 p-2.5 rounded-lg text-xs text-center text-gray-300">🥇 Cliente Benvenuto</div>`;
-          return;
+      if (!userId || !db) { 
+          document.getElementById('user-points-val').innerText = "50"; 
+          document.getElementById('user-trophies-list').innerHTML = `<div class="bg-gray-800 p-2.5 rounded-lg text-xs text-center text-gray-300">🥇 Cliente Benvenuto</div>`; 
+          return; 
       }
-
+      
       try {
         const { data } = await db.from('users').select('*').eq('telegram_id', userId);
         
         if (data && data.length > 0) {
-          const user = data[0];
+          const user = data[0]; 
           document.getElementById('user-points-val').innerText = user.points || 0;
           
           let trophies = user.trophies || [];
-          if (typeof trophies === 'string') {
+          if (typeof trophies === 'string') { 
               try { 
                   trophies = JSON.parse(trophies); 
               } catch(e) { 
                   trophies = []; 
-              }
+              } 
           }
-
-          const listContainer = document.getElementById('user-trophies-list');
+          
+          const listDiv = document.getElementById('user-trophies-list');
           
           if(trophies.length > 0) {
-              let trophiesHTML = '';
+              let tHTML = '';
               trophies.forEach(t => {
-                  trophiesHTML += `
-                  <div class="bg-gray-800 border border-gray-700 p-2.5 rounded-xl text-xs font-bold text-amber-300 flex items-center space-x-2">
-                      <i data-lucide="trophy" class="w-4 h-4 text-amber-400"></i>
-                      <span>${t}</span>
-                  </div>
-                  `;
+                  tHTML += `<div class="bg-gray-800 border border-gray-700 p-2.5 rounded-xl text-xs font-bold text-amber-300 flex items-center space-x-2"><i data-lucide="trophy" class="w-4 h-4 text-amber-400"></i><span>${t}</span></div>`;
               });
-              listContainer.innerHTML = trophiesHTML;
+              listDiv.innerHTML = tHTML;
               lucide.createIcons();
-          } else {
-              listContainer.innerHTML = `<div class="text-xs text-gray-500 text-center py-3">Nessun trofeo sbloccato al momento.</div>`;
+          } else { 
+              listDiv.innerHTML = `<div class="text-xs text-gray-500 text-center py-3">Nessun trofeo sbloccato al momento.</div>`; 
           }
         }
       } catch(e) {
@@ -829,86 +944,89 @@
       }
     }
 
-    function closeTrophiesModal() {
-        const modal = document.getElementById('trophies-modal');
-        modal.classList.add('hidden');
+    function closeTrophiesModal() { 
+        document.getElementById('trophies-modal').classList.add('hidden'); 
     }
-
-    function openTrackingModal() {
-        const modal = document.getElementById('tracking-modal');
-        modal.classList.remove('hidden');
+    
+    // --- MODALE TRACKING ORDINI ---
+    function openTrackingModal() { 
+        document.getElementById('tracking-modal').classList.remove('hidden'); 
     }
-
-    function closeTrackingModal() {
-        const modal = document.getElementById('tracking-modal');
-        const result = document.getElementById('tracking-result');
-        
-        modal.classList.add('hidden');
-        result.classList.add('hidden');
+    
+    function closeTrackingModal() { 
+        document.getElementById('tracking-modal').classList.add('hidden'); 
+        document.getElementById('tracking-result').classList.add('hidden'); 
     }
-
+    
     async function searchOrderTracking() {
-      const input = document.getElementById('tracking-order-id');
-      const orderId = input.value.trim();
+      const orderId = document.getElementById('tracking-order-id').value.trim();
       const resContainer = document.getElementById('tracking-result');
       
-      if (!orderId) {
-          alert("Inserisci un numero d'ordine!");
-          return;
+      if (!orderId) { 
+          alert("Inserisci un numero d'ordine valido!"); 
+          return; 
       }
       
-      resContainer.innerHTML = `<div class="text-xs text-gray-400 text-center py-2">Ricerca in corso...</div>`;
+      resContainer.innerHTML = `<div class="text-xs text-gray-400 text-center py-2">Ricerca in corso...</div>`; 
       resContainer.classList.remove('hidden');
       
       try {
         const { data } = await db.from('orders').select('*').eq('id', orderId);
         
         if (data && data.length > 0) {
-          const o = data[0];
-          
-          const statusMap = {
-              "PENDING": "⏳ In Attesa",
-              "ACCEPTED": "✅ Confermato",
-              "SHIPPED": "🚚 Spedito",
-              "CANCELLED": "❌ Annullato"
+          const o = data[0]; 
+          const statusMap = { 
+              "PENDING": "⏳ In Attesa", 
+              "ACCEPTED": "✅ Confermato", 
+              "SHIPPED": "🚚 Spedito", 
+              "CANCELLED": "❌ Annullato" 
           };
-          
-          const orderStatus = statusMap[o.status] || o.status;
-          const trackingInfo = o.tracking_code || 'In attesa di elaborazione';
           
           resContainer.innerHTML = `
             <div class="bg-gray-900 border border-gray-800 p-3 rounded-xl text-xs space-y-1.5">
                 <div class="flex justify-between font-bold">
                     <span class="text-white">Ordine #${o.id}</span>
-                    <span class="text-emerald-400">${orderStatus}</span>
+                    <span class="text-emerald-400">${statusMap[o.status] || o.status}</span>
                 </div>
                 <div class="text-gray-300 font-mono bg-gray-800 p-2 rounded-lg mt-2">
-                    <b>Tracking Code / Info:</b><br>${trackingInfo}
+                    <b>Tracking Code / Info:</b><br>${o.tracking_code || 'In attesa di elaborazione'}
                 </div>
-            </div>
-          `;
-        } else {
-          resContainer.innerHTML = `<div class="text-xs text-red-400 text-center py-2">Nessun ordine trovato con questo numero.</div>`;
+            </div>`;
+        } else { 
+            resContainer.innerHTML = `<div class="text-xs text-red-400 text-center py-2">Nessun ordine trovato con questo ID.</div>`; 
         }
-      } catch(e) {
-          resContainer.innerHTML = `<div class="text-xs text-red-400 text-center py-2">Errore di rete. Riprova più tardi.</div>`;
+      } catch(e) { 
+          resContainer.innerHTML = `<div class="text-xs text-red-400 text-center py-2">Errore di rete. Impossibile caricare il tracking.</div>`; 
       }
     }
 
-    function openSupportModal() {
-        const modal = document.getElementById('support-modal');
-        modal.classList.remove('hidden');
-        lucide.createIcons();
+    // --- MODALE SUPPORTO ---
+    function openSupportModal() { 
+        document.getElementById('support-modal').classList.remove('hidden'); 
+        lucide.createIcons(); 
+    }
+    
+    function closeSupportModal() { 
+        document.getElementById('support-modal').classList.add('hidden'); 
     }
 
-    function closeSupportModal() {
-        const modal = document.getElementById('support-modal');
-        modal.classList.add('hidden');
-    }
-
-    // --- CARICAMENTO AL LANCIO ---
+    // ----------------------------------------------------
+    // AVVIO AL CARICAMENTO DELLA PAGINA
+    // ----------------------------------------------------
     document.addEventListener("DOMContentLoaded", () => {
+        // Carica la griglia dei prodotti
         loadProducts();
+        
+        // Forza l'autoplay sul banner video principale (risolve i blocchi iOS)
+        setTimeout(() => {
+            const banner = document.getElementById('banner-video');
+            if(banner) { 
+                banner.muted = true; 
+                banner.setAttribute('playsinline', '');
+                banner.setAttribute('webkit-playsinline', '');
+                banner.play().catch(e => console.log('Autoplay del banner bloccato da iOS', e)); 
+            }
+        }, 500);
     });
 
   </script>
