@@ -272,7 +272,7 @@
   <div id="product-detail-modal" class="fixed inset-0 bg-[#121212] z-50 hidden flex-col overflow-y-auto hide-scrollbar pb-24 transition-transform duration-300 transform translate-y-full">
     
     <!-- Tasto Chiudi Modale -->
-    <button onclick="closeProductModal()" class="absolute top-4 right-4 bg-black/60 p-2 rounded-full z-20 backdrop-blur-md shadow-xl border border-gray-600/30">
+    <button onclick="closeProductModal()" class="absolute top-4 right-4 bg-black/60 p-2 rounded-full z-[70] backdrop-blur-md shadow-xl border border-gray-600/30">
        <i data-lucide="x" class="w-6 h-6 text-white"></i>
     </button>
 
@@ -302,7 +302,7 @@
     </div>
 
     <!-- Barra Acquisto Fissa sul fondo -->
-    <div class="fixed bottom-0 left-0 right-0 bg-[#1e1e1e] border-t border-gray-800 p-4 flex items-center space-x-3 z-20 pb-safe">
+    <div class="fixed bottom-0 left-0 right-0 bg-[#1e1e1e] border-t border-gray-800 p-4 flex items-center space-x-3 z-[60] pb-safe">
         <div class="flex items-center bg-gray-900 border border-gray-700 rounded-xl px-2 py-2">
             <button onclick="changeQty(-1)" class="text-white text-xl px-3 hover:text-emerald-400 transition">-</button>
             <span id="pd-qty-val" class="text-white font-bold w-6 text-center text-sm">1</span>
@@ -322,8 +322,8 @@
     
     <!-- Banner Video Principale in alto -->
     <div class="relative rounded-2xl overflow-hidden border border-gray-800 bg-gray-900 shadow-2xl">
-      <video id="banner-video" class="w-full h-48 object-cover" autoplay loop muted playsinline webkit-playsinline src="https://files.catbox.moe/2a9rqy.mov"></video>
-      <!-- Nessun pointer-events-none, così i comandi del video restano puliti e gestiti nativamente -->
+      <!-- FIX: Inserito onloadedmetadata per forzare SEMPRE l'autoplay del video -->
+      <video id="banner-video" class="w-full h-48 object-cover" autoplay loop muted playsinline webkit-playsinline onloadedmetadata="this.muted=true; this.play()" src="https://files.catbox.moe/2a9rqy.mov"></video>
       <div class="absolute inset-0 bg-gradient-to-t from-[#121212] via-black/40 to-transparent pointer-events-none"></div>
       <div class="absolute bottom-3 left-4 right-4 pointer-events-none">
         <h1 class="text-2xl font-black text-white tracking-wide">Boston George 420</h1>
@@ -381,11 +381,11 @@
   </main>
 
   <!-- ---------------------------------------------------- -->
-  <!-- MOTORE DEL SITO (TUTTO IL JAVASCRIPT ESPANSO)        -->
+  <!-- MOTORE DEL SITO E SCRIPT                             -->
   <!-- ---------------------------------------------------- -->
   <script>
     
-    // Inizializza le icone
+    // Inizializza le icone Lucide
     lucide.createIcons();
     
     let allProducts = [];
@@ -492,27 +492,28 @@
             media = [{ url: p.media_url, type: p.media_type || 'image' }];
         }
 
-        // Costruiamo le immagini/video per questa singola scheda
+        // Costruiamo le immagini/video per questa singola scheda.
+        // FIX VIDEO: aggiunto onloadedmetadata="this.muted=true; this.play()"
         let mediaSliderHTML = '';
         media.forEach(m => {
             mediaSliderHTML += `<div class="w-full h-full flex-shrink-0 media-item relative">`;
             
             if (m.type === 'video') {
-                // I video sono sbloccati. Nessun puntatore bloccato, puro HTML.
-                mediaSliderHTML += `<video class="w-full h-full object-cover" autoplay loop muted playsinline webkit-playsinline src="${m.url}"></video>`;
+                mediaSliderHTML += `<video class="w-full h-full object-cover pointer-events-none" autoplay loop muted playsinline webkit-playsinline src="${m.url}" onloadedmetadata="this.muted=true; this.play()"></video>`;
             } else {
                 let imageUrl = m.url || 'https://images.unsplash.com/photo-1527661591475-527312dd65f5';
-                mediaSliderHTML += `<img class="w-full h-full object-cover" src="${imageUrl}" />`;
+                mediaSliderHTML += `<img class="w-full h-full object-cover pointer-events-none" src="${imageUrl}" />`;
             }
             
             mediaSliderHTML += `</div>`;
         });
 
         // TASTO FANTASMA PER APRIRE LA MODALE GIGANTE
+        // FIX TASTO: z-[60] e pointer-events: auto; per cliccare senza bug.
         let expandButtonHTML = `
-            <button onclick="openProductModal('${p.id}')" class="absolute top-2 right-2 bg-black/50 backdrop-blur-md p-2 rounded-full z-20 hover:bg-black/70 transition shadow-lg border border-gray-600/30">
-                <i data-lucide="maximize" class="w-5 h-5 text-white drop-shadow-md"></i>
-            </button>
+            <div onclick="openProductModal('${p.id}')" class="absolute top-2 right-2 bg-black/60 backdrop-blur-md p-2.5 rounded-full z-[60] cursor-pointer hover:bg-black/80 shadow-xl border border-gray-500/50 flex items-center justify-center" style="pointer-events: auto;">
+                <i data-lucide="maximize" class="w-5 h-5 text-white"></i>
+            </div>
         `;
 
         // Etichetta del carosello (se ci sono più foto)
@@ -555,7 +556,6 @@
           </div>
           
           <div class="p-4 space-y-3">
-            <!-- Rimosso l'onclick dal testo per non confliggere -->
             <div>
               <span class="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">${catLabel}</span>
               <h3 class="font-bold text-base text-white mt-0.5">${prodName}</h3>
@@ -599,14 +599,15 @@
             media = [{ url: currentProd.media_url, type: currentProd.media_type }];
         }
         
+        // FIX: Carosello a schermo intero
         let modaleMediaHTML = `<div class="flex overflow-x-auto hide-scrollbar media-slider w-full h-full">`;
         
         media.forEach(m => {
             modaleMediaHTML += `<div class="w-full h-full flex-shrink-0 media-item relative">`;
             if(m.type === 'video') {
-                modaleMediaHTML += `<video class="w-full h-full object-cover" autoplay loop muted playsinline webkit-playsinline src="${m.url}"></video>`;
+                modaleMediaHTML += `<video class="w-full h-full object-cover pointer-events-none" autoplay loop muted playsinline webkit-playsinline src="${m.url}" onloadedmetadata="this.muted=true; this.play()"></video>`;
             } else {
-                modaleMediaHTML += `<img class="w-full h-full object-cover" src="${m.url}" />`;
+                modaleMediaHTML += `<img class="w-full h-full object-cover pointer-events-none" src="${m.url}" />`;
             }
             modaleMediaHTML += `</div>`;
         });
@@ -673,9 +674,9 @@
              <div onclick="closeProductModal(); setTimeout(()=>openProductModal('${p.id}'), 300)" class="bg-gray-800 rounded-xl overflow-hidden cursor-pointer shadow-md">
              `;
              if(firstRm.type === 'video') {
-                 correlatiHTML += `<video class="w-full h-24 object-cover" autoplay loop muted playsinline webkit-playsinline src="${firstRm.url}"></video>`;
+                 correlatiHTML += `<video class="w-full h-24 object-cover pointer-events-none" autoplay loop muted playsinline webkit-playsinline src="${firstRm.url}" onloadedmetadata="this.muted=true; this.play()"></video>`;
              } else {
-                 correlatiHTML += `<img class="w-full h-24 object-cover" src="${firstRm.url}" />`;
+                 correlatiHTML += `<img class="w-full h-24 object-cover pointer-events-none" src="${firstRm.url}" />`;
              }
              correlatiHTML += `
                 <div class="p-2 text-xs font-bold text-white truncate">${p.name}</div>
@@ -881,7 +882,8 @@
       if (cat === 'ALL') { 
           renderProducts(allProducts); 
       } else { 
-          renderProducts(allProducts.filter(p => p.category && p.category.includes(cat))); 
+          const filtered = allProducts.filter(p => p.category && p.category.includes(cat));
+          renderProducts(filtered);
       }
     }
 
