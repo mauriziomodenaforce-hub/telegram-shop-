@@ -272,7 +272,7 @@
   <div id="product-detail-modal" class="fixed inset-0 bg-[#121212] z-50 hidden flex-col overflow-y-auto hide-scrollbar pb-24 transition-transform duration-300 transform translate-y-full">
     
     <!-- Tasto Chiudi Modale -->
-    <button onclick="closeProductModal()" class="absolute top-4 right-4 bg-black/60 p-2 rounded-full z-10 backdrop-blur-md">
+    <button onclick="closeProductModal()" class="absolute top-4 right-4 bg-black/60 p-2 rounded-full z-20 backdrop-blur-md shadow-xl border border-gray-600/30">
        <i data-lucide="x" class="w-6 h-6 text-white"></i>
     </button>
 
@@ -321,9 +321,9 @@
   <main class="p-4 space-y-5">
     
     <!-- Banner Video Principale in alto -->
-    <!-- FIX: Aggiunto onclick per forzare play manuale + rimosso pointer-events che bloccava il tocco -->
-    <div class="relative rounded-2xl overflow-hidden border border-gray-800 bg-gray-900 shadow-2xl" onclick="const v = document.getElementById('banner-video'); v.muted=true; v.play();">
+    <div class="relative rounded-2xl overflow-hidden border border-gray-800 bg-gray-900 shadow-2xl">
       <video id="banner-video" class="w-full h-48 object-cover" autoplay loop muted playsinline webkit-playsinline src="https://files.catbox.moe/2a9rqy.mov"></video>
+      <!-- Nessun pointer-events-none, così i comandi del video restano puliti e gestiti nativamente -->
       <div class="absolute inset-0 bg-gradient-to-t from-[#121212] via-black/40 to-transparent pointer-events-none"></div>
       <div class="absolute bottom-3 left-4 right-4 pointer-events-none">
         <h1 class="text-2xl font-black text-white tracking-wide">Boston George 420</h1>
@@ -395,21 +395,6 @@
     let currentProd = null;
     let selectedVariantIndex = 0;
     let currentQty = 1;
-
-    // --- FUNZIONE PER FORZARE I VIDEO GLOBALI ---
-    function unlockAllVideos() {
-        const videos = document.querySelectorAll('video');
-        videos.forEach(vid => {
-            vid.muted = true;
-            vid.defaultMuted = true;
-            vid.playsInline = true;
-            vid.play().catch(e => console.log('Video bloccato da policy iOS/Telegram', e));
-        });
-    }
-
-    // Aggiungo sblocco forzato al primo tocco sullo schermo (Salva-vita per iOS)
-    document.body.addEventListener('click', unlockAllVideos, { once: true });
-    document.body.addEventListener('touchstart', unlockAllVideos, { once: true });
 
     // --- FUNZIONI DI BASE UI ---
     function toggleDrawer() {
@@ -510,18 +495,25 @@
         // Costruiamo le immagini/video per questa singola scheda
         let mediaSliderHTML = '';
         media.forEach(m => {
-            mediaSliderHTML += `<div onclick="openProductModal('${p.id}')" class="w-full h-full flex-shrink-0 media-item cursor-pointer relative">`;
+            mediaSliderHTML += `<div class="w-full h-full flex-shrink-0 media-item relative">`;
             
             if (m.type === 'video') {
-                // Video: con pointer-events-none il tocco passa al genitore (div) e non manda in pappa lo swipe
-                mediaSliderHTML += `<video class="w-full h-full object-cover pointer-events-none" autoplay loop muted playsinline webkit-playsinline src="${m.url}"></video>`;
+                // I video sono sbloccati. Nessun puntatore bloccato, puro HTML.
+                mediaSliderHTML += `<video class="w-full h-full object-cover" autoplay loop muted playsinline webkit-playsinline src="${m.url}"></video>`;
             } else {
                 let imageUrl = m.url || 'https://images.unsplash.com/photo-1527661591475-527312dd65f5';
-                mediaSliderHTML += `<img class="w-full h-full object-cover pointer-events-none" src="${imageUrl}" />`;
+                mediaSliderHTML += `<img class="w-full h-full object-cover" src="${imageUrl}" />`;
             }
             
             mediaSliderHTML += `</div>`;
         });
+
+        // TASTO FANTASMA PER APRIRE LA MODALE GIGANTE
+        let expandButtonHTML = `
+            <button onclick="openProductModal('${p.id}')" class="absolute top-2 right-2 bg-black/50 backdrop-blur-md p-2 rounded-full z-20 hover:bg-black/70 transition shadow-lg border border-gray-600/30">
+                <i data-lucide="maximize" class="w-5 h-5 text-white drop-shadow-md"></i>
+            </button>
+        `;
 
         // Etichetta del carosello (se ci sono più foto)
         let scorriBadge = '';
@@ -558,11 +550,13 @@
             <div class="flex overflow-x-auto hide-scrollbar media-slider w-full h-full">
               ${mediaSliderHTML}
             </div>
+            ${expandButtonHTML}
             ${scorriBadge}
           </div>
           
           <div class="p-4 space-y-3">
-            <div onclick="openProductModal('${p.id}')" class="cursor-pointer">
+            <!-- Rimosso l'onclick dal testo per non confliggere -->
+            <div>
               <span class="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">${catLabel}</span>
               <h3 class="font-bold text-base text-white mt-0.5">${prodName}</h3>
               <p class="text-xs text-gray-400 line-clamp-2 mt-1">${formatTextWithMentions(prodDesc)}</p>
@@ -578,17 +572,11 @@
       
       container.innerHTML = htmlContent;
       lucide.createIcons();
-
-      // Riavvia i video della griglia dopo averla creata
-      setTimeout(unlockAllVideos, 300);
     }
 
 
     // --- LOGICA MODALE DETTAGLIO PRODOTTO (FULL SCREEN) ---
     function openProductModal(prodId) {
-        // Appena l'utente clicca, forziamo uno sblocco di sicurezza video
-        unlockAllVideos();
-
         currentProd = allProducts.find(x => x.id === prodId);
         
         if(!currentProd) {
@@ -616,9 +604,9 @@
         media.forEach(m => {
             modaleMediaHTML += `<div class="w-full h-full flex-shrink-0 media-item relative">`;
             if(m.type === 'video') {
-                modaleMediaHTML += `<video class="w-full h-full object-cover pointer-events-none" autoplay loop muted playsinline webkit-playsinline src="${m.url}"></video>`;
+                modaleMediaHTML += `<video class="w-full h-full object-cover" autoplay loop muted playsinline webkit-playsinline src="${m.url}"></video>`;
             } else {
-                modaleMediaHTML += `<img class="w-full h-full object-cover pointer-events-none" src="${m.url}" />`;
+                modaleMediaHTML += `<img class="w-full h-full object-cover" src="${m.url}" />`;
             }
             modaleMediaHTML += `</div>`;
         });
@@ -685,9 +673,9 @@
              <div onclick="closeProductModal(); setTimeout(()=>openProductModal('${p.id}'), 300)" class="bg-gray-800 rounded-xl overflow-hidden cursor-pointer shadow-md">
              `;
              if(firstRm.type === 'video') {
-                 correlatiHTML += `<video class="w-full h-24 object-cover pointer-events-none" autoplay loop muted playsinline webkit-playsinline src="${firstRm.url}"></video>`;
+                 correlatiHTML += `<video class="w-full h-24 object-cover" autoplay loop muted playsinline webkit-playsinline src="${firstRm.url}"></video>`;
              } else {
-                 correlatiHTML += `<img class="w-full h-24 object-cover pointer-events-none" src="${firstRm.url}" />`;
+                 correlatiHTML += `<img class="w-full h-24 object-cover" src="${firstRm.url}" />`;
              }
              correlatiHTML += `
                 <div class="p-2 text-xs font-bold text-white truncate">${p.name}</div>
@@ -707,9 +695,6 @@
         setTimeout(() => { 
             modalElement.classList.remove('translate-y-full'); 
         }, 10);
-        
-        // Sblocca i video interni alla modale
-        setTimeout(unlockAllVideos, 300);
     }
 
     function closeProductModal() {
@@ -960,7 +945,8 @@
     }
     
     async function searchOrderTracking() {
-      const orderId = document.getElementById('tracking-order-id').value.trim();
+      const input = document.getElementById('tracking-order-id');
+      const orderId = input.value.trim();
       const resContainer = document.getElementById('tracking-result');
       
       if (!orderId) { 
@@ -976,6 +962,7 @@
         
         if (data && data.length > 0) {
           const o = data[0]; 
+          
           const statusMap = { 
               "PENDING": "⏳ In Attesa", 
               "ACCEPTED": "✅ Confermato", 
@@ -983,16 +970,20 @@
               "CANCELLED": "❌ Annullato" 
           };
           
+          const orderStatus = statusMap[o.status] || o.status;
+          const trackingInfo = o.tracking_code || 'In attesa di elaborazione';
+          
           resContainer.innerHTML = `
             <div class="bg-gray-900 border border-gray-800 p-3 rounded-xl text-xs space-y-1.5">
                 <div class="flex justify-between font-bold">
                     <span class="text-white">Ordine #${o.id}</span>
-                    <span class="text-emerald-400">${statusMap[o.status] || o.status}</span>
+                    <span class="text-emerald-400">${orderStatus}</span>
                 </div>
                 <div class="text-gray-300 font-mono bg-gray-800 p-2 rounded-lg mt-2">
-                    <b>Tracking Code / Info:</b><br>${o.tracking_code || 'In attesa di elaborazione'}
+                    <b>Tracking Code / Info:</b><br>${trackingInfo}
                 </div>
-            </div>`;
+            </div>
+          `;
         } else { 
             resContainer.innerHTML = `<div class="text-xs text-red-400 text-center py-2">Nessun ordine trovato con questo ID.</div>`; 
         }
@@ -1003,12 +994,14 @@
 
     // --- MODALE SUPPORTO ---
     function openSupportModal() { 
-        document.getElementById('support-modal').classList.remove('hidden'); 
+        const modal = document.getElementById('support-modal');
+        modal.classList.remove('hidden'); 
         lucide.createIcons(); 
     }
     
     function closeSupportModal() { 
-        document.getElementById('support-modal').classList.add('hidden'); 
+        const modal = document.getElementById('support-modal');
+        modal.classList.add('hidden'); 
     }
 
     // ----------------------------------------------------
@@ -1016,7 +1009,6 @@
     // ----------------------------------------------------
     document.addEventListener("DOMContentLoaded", () => {
         loadProducts();
-        setTimeout(unlockAllVideos, 500);
     });
 
   </script>
