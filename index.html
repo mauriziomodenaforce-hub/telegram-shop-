@@ -31,7 +31,6 @@
         scrollbar-width: none; 
     }
     
-    /* Regole per lo scorrimento fluido del carosello foto/video */
     .media-slider { 
         display: flex;
         overflow-x: auto;
@@ -132,6 +131,16 @@
   <!-- MODALI PRINCIPALI DEL SITO                           -->
   <!-- ---------------------------------------------------- -->
   
+  <!-- NUOVA MODALE: SOLO PER SCHERMO INTERO DI FOTO E VIDEO (NO GALLERIE) -->
+  <div id="fullscreen-media-modal" class="fixed inset-0 bg-black z-[100] hidden flex-col items-center justify-center backdrop-blur-xl transition-opacity duration-300">
+    <button onclick="closeFullscreenMedia()" class="absolute top-6 right-6 bg-gray-800/80 p-3 rounded-full z-[110] text-white border border-gray-600/50 shadow-2xl">
+      <i data-lucide="x" class="w-7 h-7"></i>
+    </button>
+    <div id="fs-media-content" class="w-full h-full flex items-center justify-center">
+        <!-- Il video o l'immagine verrà iniettato qui -->
+    </div>
+  </div>
+
   <!-- Modale Carrello -->
   <div id="cart-modal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 hidden backdrop-blur-md">
     <div class="bg-[#181818] border border-gray-800 rounded-2xl w-full max-w-sm p-5 space-y-4 shadow-2xl">
@@ -270,10 +279,10 @@
   <!-- ---------------------------------------------------- -->
   <!-- MODALE DETTAGLIO PRODOTTO (SCHERMO INTERO)           -->
   <!-- ---------------------------------------------------- -->
-  <div id="product-detail-modal" class="fixed inset-0 bg-[#121212] z-50 hidden flex-col overflow-y-auto hide-scrollbar pb-24 transition-transform duration-300 transform translate-y-full">
+  <div id="product-detail-modal" class="fixed inset-0 bg-[#121212] z-[80] hidden flex-col overflow-y-auto hide-scrollbar pb-24 transition-transform duration-300 transform translate-y-full">
     
     <!-- Tasto Chiudi Modale -->
-    <button onclick="closeProductModal()" class="absolute top-4 right-4 bg-black/60 p-2 rounded-full z-30 backdrop-blur-md shadow-xl border border-gray-600/30">
+    <button onclick="closeProductModal()" class="absolute top-4 right-4 bg-black/60 p-2 rounded-full z-[90] backdrop-blur-md shadow-xl border border-gray-600/30">
        <i data-lucide="x" class="w-6 h-6 text-white"></i>
     </button>
 
@@ -303,7 +312,7 @@
     </div>
 
     <!-- Barra Acquisto Fissa sul fondo -->
-    <div class="fixed bottom-0 left-0 right-0 bg-[#1e1e1e] border-t border-gray-800 p-4 flex items-center space-x-3 z-20 pb-safe">
+    <div class="fixed bottom-0 left-0 right-0 bg-[#1e1e1e] border-t border-gray-800 p-4 flex items-center space-x-3 z-[85] pb-safe">
         <div class="flex items-center bg-gray-900 border border-gray-700 rounded-xl px-2 py-2">
             <button onclick="changeQty(-1)" class="text-white text-xl px-3 hover:text-emerald-400 transition">-</button>
             <span id="pd-qty-val" class="text-white font-bold w-6 text-center text-sm">1</span>
@@ -321,11 +330,16 @@
   <!-- ---------------------------------------------------- -->
   <main class="p-4 space-y-5">
     
-    <!-- Banner Video Principale in alto -->
+    <!-- Banner Video Principale -->
     <div class="relative rounded-2xl overflow-hidden border border-gray-800 bg-gray-900 shadow-2xl">
-      <!-- Il video è libero e pulito per consentire l'autoplay nativo -->
-      <video id="banner-video" class="w-full h-48 object-cover" autoplay loop muted playsinline webkit-playsinline src="https://files.catbox.moe/2a9rqy.mov"></video>
+      <video id="banner-video" class="w-full h-48 object-cover" autoplay loop muted playsinline webkit-playsinline onloadedmetadata="this.muted=true; this.play()" src="https://files.catbox.moe/2a9rqy.mov"></video>
       <div class="absolute inset-0 bg-gradient-to-t from-[#121212] via-black/40 to-transparent pointer-events-none"></div>
+      
+      <!-- Tasto per aprire il banner video a schermo intero -->
+      <div onclick="openMediaFullscreen('https://files.catbox.moe/2a9rqy.mov', 'video')" class="absolute top-3 right-3 bg-black/60 backdrop-blur-md p-2.5 rounded-full z-20 cursor-pointer hover:bg-black/80 shadow-xl border border-gray-500/50 flex items-center justify-center">
+          <i data-lucide="maximize" class="w-5 h-5 text-white"></i>
+      </div>
+
       <div class="absolute bottom-3 left-4 right-4 pointer-events-none">
         <h1 class="text-2xl font-black text-white tracking-wide">Boston George 420</h1>
         <div class="flex items-center space-x-3 text-xs text-gray-300 mt-1">
@@ -382,7 +396,7 @@
   </main>
 
   <!-- ---------------------------------------------------- -->
-  <!-- MOTORE DEL SITO (TUTTO IL JAVASCRIPT ESPANSO)        -->
+  <!-- MOTORE DEL SITO E SCRIPT JAVASCRIPT                  -->
   <!-- ---------------------------------------------------- -->
   <script>
     
@@ -397,24 +411,48 @@
     let selectedVariantIndex = 0;
     let currentQty = 1;
 
-    // --- FUNZIONE PER FORZARE I VIDEO GLOBALI ---
-    // Questo è il salvavita per iOS: al primo tocco sullo schermo (qualsiasi punto), 
-    // dice al telefono "Ok, l'utente è attivo, sblocca tutti i video e falli partire".
+    // --- FUNZIONE: APRI MEDIA A SCHERMO INTERO NATIVO ---
+    function openMediaFullscreen(url, type) {
+        const modal = document.getElementById('fullscreen-media-modal');
+        const content = document.getElementById('fs-media-content');
+        
+        if (type === 'video') {
+            content.innerHTML = `<video src="${url}" controls autoplay playsinline webkit-playsinline class="w-full h-full object-contain"></video>`;
+        } else {
+            content.innerHTML = `<img src="${url}" class="w-full h-full object-contain" />`;
+        }
+        
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    function closeFullscreenMedia() {
+        const modal = document.getElementById('fullscreen-media-modal');
+        const content = document.getElementById('fs-media-content');
+        
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        
+        // Svuota il contenuto così il video si stoppa e non continua a suonare
+        content.innerHTML = ''; 
+    }
+
+    // --- SBLOCCO FORZATO VIDEO (Per aggirare limitazioni iOS) ---
     function forcePlayAll() {
-        document.querySelectorAll('video').forEach(vid => {
+        const videos = document.querySelectorAll('video');
+        videos.forEach(vid => {
             vid.muted = true;
-            vid.setAttribute('playsinline', '');
-            vid.setAttribute('webkit-playsinline', '');
+            vid.defaultMuted = true;
+            vid.playsInline = true;
             let playPromise = vid.play();
             if (playPromise !== undefined) {
                 playPromise.catch(error => {
-                    // Video temporaneamente bloccato, riproverà
+                    console.log("Video in attesa di interazione");
                 });
             }
         });
     }
-
-    // Aggiungo i listener per sbloccare i video
+    
     window.addEventListener('touchstart', forcePlayAll, {once: true});
     window.addEventListener('click', forcePlayAll, {once: true});
 
@@ -436,7 +474,6 @@
         if(!text) {
             return "";
         }
-        // Converte @username in link telegram cliccabili blu
         return text.replace(/@(\w+)/g, '<a href="https://t.me/$1" target="_blank" class="text-blue-400 font-bold hover:underline">@$1</a>');
     }
 
@@ -444,7 +481,7 @@
     async function loadProducts() {
       try {
         if (!db) {
-            throw new Error("Supabase client non inizializzato");
+            throw new Error("Supabase non inizializzato");
         }
         
         const { data, error } = await db.from('products').select('*').eq('in_showcase', true).order('created_at', { ascending: false });
@@ -455,7 +492,6 @@
         
         allProducts = data || [];
         
-        // Regola speciale: Sposta i prodotti "Meet Up" in cima alla lista
         allProducts.sort((a, b) => {
             const aMeet = (a.category || '').includes('Meet Up');
             const bMeet = (b.category || '').includes('Meet Up');
@@ -472,13 +508,12 @@
         renderProducts(allProducts);
         
       } catch (err) {
-        console.error(err);
         const container = document.getElementById('products-grid');
         container.innerHTML = `<div class="text-center py-4 text-red-400 text-sm">Impossibile caricare i prodotti.</div>`;
       }
     }
 
-    // --- RENDER SCHEDE PRODOTTI NELLA HOME ---
+    // --- RENDER SCHEDE PRODOTTI ---
     function renderProducts(products) {
       const container = document.getElementById('products-grid');
       
@@ -490,7 +525,6 @@
       let htmlContent = '';
 
       products.forEach(p => {
-        // Parsing delle opzioni di prezzo
         let opts = p.price_options;
         if (typeof opts === 'string') {
             try { 
@@ -501,7 +535,6 @@
         }
         opts = opts || [];
 
-        // Parsing dei file multimediali (foto/video multipli)
         let media = p.media_list;
         if (typeof media === 'string') {
             try { 
@@ -514,35 +547,33 @@
             media = [{ url: p.media_url, type: p.media_type || 'image' }];
         }
 
-        // Costruiamo le immagini/video per questa singola scheda (SLIDER PURO)
+        // Costruiamo lo slider per questa singola scheda
         let mediaSliderHTML = '';
         media.forEach(m => {
             mediaSliderHTML += `<div class="w-full h-full flex-shrink-0 media-item relative">`;
             
             if (m.type === 'video') {
-                mediaSliderHTML += `<video class="w-full h-full object-cover" autoplay loop muted playsinline webkit-playsinline src="${m.url}"></video>`;
+                mediaSliderHTML += `<video class="w-full h-full object-cover pointer-events-none" autoplay loop muted playsinline webkit-playsinline src="${m.url}" onloadedmetadata="this.muted=true; this.play()"></video>`;
             } else {
                 let imageUrl = m.url || 'https://images.unsplash.com/photo-1527661591475-527312dd65f5';
-                mediaSliderHTML += `<img class="w-full h-full object-cover" src="${imageUrl}" />`;
+                mediaSliderHTML += `<img class="w-full h-full object-cover pointer-events-none" src="${imageUrl}" />`;
             }
+            
+            // IL TASTINO "FANTASMA" PER APRIRE SOLO IL MEDIA A SCHERMO INTERO
+            mediaSliderHTML += `
+            <div onclick="openMediaFullscreen('${m.url}', '${m.type}')" class="absolute top-2 right-2 bg-black/60 backdrop-blur-md p-2.5 rounded-full z-[60] cursor-pointer hover:bg-black/80 shadow-xl border border-gray-500/50 flex items-center justify-center" style="pointer-events: auto;">
+                <i data-lucide="maximize" class="w-5 h-5 text-white"></i>
+            </div>
+            `;
             
             mediaSliderHTML += `</div>`;
         });
 
-        // TASTO ESPANDI
-        let expandButtonHTML = `
-            <button onclick="openProductModal('${p.id}')" class="absolute top-2 right-2 bg-black/60 backdrop-blur-md p-2 rounded-full z-20 hover:bg-black/80 shadow-xl border border-gray-500/50">
-                <i data-lucide="maximize" class="w-5 h-5 text-white"></i>
-            </button>
-        `;
-
-        // Etichetta del carosello (se ci sono più foto)
         let scorriBadge = '';
         if (media.length > 1) {
             scorriBadge = `<div class="absolute bottom-2 right-2 bg-black/70 backdrop-blur-sm text-white text-[10px] px-2.5 py-1 rounded-full font-bold z-10 pointer-events-none shadow-md">↔ Scorri (${media.length})</div>`;
         }
 
-        // Costruiamo i bottoni "+ Aggiungi" per ogni variante
         let bottoniHTML = '';
         opts.forEach(opt => {
             bottoniHTML += `
@@ -560,9 +591,8 @@
 
         let catLabel = p.category || '';
         let prodName = p.name || '';
-        let prodDesc = p.description || 'Prodotto in pronta consegna da ' + p.category;
+        let prodDesc = p.description || 'Prodotto in pronta consegna';
 
-        // Componi l'intero blocco della scheda
         htmlContent += `
         <div class="bg-gray-900/90 border border-gray-800 rounded-2xl overflow-hidden shadow-lg">
           
@@ -570,7 +600,6 @@
             <div class="flex overflow-x-auto hide-scrollbar media-slider w-full h-full">
               ${mediaSliderHTML}
             </div>
-            ${expandButtonHTML}
             ${scorriBadge}
           </div>
           
@@ -592,12 +621,10 @@
       container.innerHTML = htmlContent;
       lucide.createIcons();
 
-      // Forza la riproduzione in background di tutti i video caricati nella griglia
       setTimeout(forcePlayAll, 300);
     }
 
-
-    // --- LOGICA MODALE DETTAGLIO PRODOTTO (FULL SCREEN) ---
+    // --- LOGICA MODALE PRODOTTO (DESCRIZIONE) ---
     function openProductModal(prodId) {
         currentProd = allProducts.find(x => x.id === prodId);
         
@@ -608,7 +635,6 @@
         selectedVariantIndex = 0;
         currentQty = 1;
 
-        // Costruisci le foto/video in grande dentro la modale
         let media = currentProd.media_list;
         if(typeof media === 'string') {
             try { 
@@ -626,13 +652,19 @@
         media.forEach(m => {
             modaleMediaHTML += `<div class="w-full h-full flex-shrink-0 media-item relative">`;
             if(m.type === 'video') {
-                modaleMediaHTML += `<video class="w-full h-full object-cover" autoplay loop muted playsinline webkit-playsinline src="${m.url}"></video>`;
+                modaleMediaHTML += `<video class="w-full h-full object-cover pointer-events-none" autoplay loop muted playsinline webkit-playsinline src="${m.url}" onloadedmetadata="this.muted=true; this.play()"></video>`;
             } else {
-                modaleMediaHTML += `<img class="w-full h-full object-cover" src="${m.url}" />`;
+                modaleMediaHTML += `<img class="w-full h-full object-cover pointer-events-none" src="${m.url}" />`;
             }
+            
+            // Anche nella modale, il tastino per espandere a tutto schermo il video!
+            modaleMediaHTML += `
+            <div onclick="openMediaFullscreen('${m.url}', '${m.type}')" class="absolute top-2 right-2 bg-black/60 backdrop-blur-md p-2.5 rounded-full z-[60] cursor-pointer hover:bg-black/80 shadow-xl border border-gray-500/50 flex items-center justify-center" style="pointer-events: auto;">
+                <i data-lucide="maximize" class="w-5 h-5 text-white"></i>
+            </div>
+            `;
             modaleMediaHTML += `</div>`;
         });
-        
         modaleMediaHTML += `</div>`;
         
         if(media.length > 1) {
@@ -642,14 +674,12 @@
         const mediaContainer = document.getElementById('pd-media-container');
         mediaContainer.innerHTML = modaleMediaHTML;
 
-        // Inserisci testi della modale
         document.getElementById('pd-category').innerText = currentProd.category;
         document.getElementById('pd-title').innerText = currentProd.name;
         
         let descToUse = currentProd.description || `Prodotto in pronta consegna da ${currentProd.category}`;
         document.getElementById('pd-desc').innerHTML = formatTextWithMentions(descToUse);
 
-        // Prepara le varianti cliccabili all'interno della modale
         let opts = currentProd.price_options;
         if(typeof opts === 'string') {
             try { 
@@ -675,7 +705,6 @@
         
         varContainer.innerHTML = variantiHTML;
 
-        // Calcola e inserisci i prodotti correlati casuali a fondo pagina
         const related = allProducts.filter(p => p.id !== prodId).sort(() => 0.5 - Math.random()).slice(0, 4);
         const relatedContainer = document.getElementById('pd-related');
         let correlatiHTML = '';
@@ -695,9 +724,9 @@
              <div onclick="closeProductModal(); setTimeout(()=>openProductModal('${p.id}'), 300)" class="bg-gray-800 rounded-xl overflow-hidden cursor-pointer shadow-md">
              `;
              if(firstRm.type === 'video') {
-                 correlatiHTML += `<video class="w-full h-24 object-cover" autoplay loop muted playsinline webkit-playsinline src="${firstRm.url}"></video>`;
+                 correlatiHTML += `<video class="w-full h-24 object-cover pointer-events-none" autoplay loop muted playsinline webkit-playsinline src="${firstRm.url}" onloadedmetadata="this.muted=true; this.play()"></video>`;
              } else {
-                 correlatiHTML += `<img class="w-full h-24 object-cover" src="${firstRm.url}" />`;
+                 correlatiHTML += `<img class="w-full h-24 object-cover pointer-events-none" src="${firstRm.url}" />`;
              }
              correlatiHTML += `
                 <div class="p-2 text-xs font-bold text-white truncate">${p.name}</div>
@@ -706,10 +735,8 @@
         
         relatedContainer.innerHTML = correlatiHTML;
 
-        // Calcola totale del bottone
         updateBottomBar();
         
-        // Apre visivamente la modale
         const modalElement = document.getElementById('product-detail-modal');
         modalElement.classList.remove('hidden');
         modalElement.classList.add('flex');
@@ -717,9 +744,11 @@
         setTimeout(() => { 
             modalElement.classList.remove('translate-y-full'); 
         }, 10);
-
-        // Assicura che i video della modale partano
-        setTimeout(forcePlayAll, 300);
+        
+        setTimeout(() => { 
+            lucide.createIcons(); 
+            forcePlayAll(); 
+        }, 300);
     }
 
     function closeProductModal() {
@@ -831,6 +860,7 @@
     
     function removeFromCart(index) {
       cart.splice(index, 1);
+      
       if (cart.length === 0) { 
           document.getElementById('cart-badge').classList.add('hidden'); 
           closeCartModal(); 
@@ -1035,7 +1065,6 @@
     // ----------------------------------------------------
     document.addEventListener("DOMContentLoaded", () => {
         loadProducts();
-        setTimeout(forcePlayAll, 500);
     });
 
   </script>
