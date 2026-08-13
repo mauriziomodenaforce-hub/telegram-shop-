@@ -277,7 +277,7 @@
 
 
   <!-- ---------------------------------------------------- -->
-  <!-- MODALE DETTAGLIO PRODOTTO (SCHERMO INTERO)           -->
+  <!-- MODALE DETTAGLIO PRODOTTO SCHERMO INTERO             -->
   <!-- ---------------------------------------------------- -->
   <div id="product-detail-modal" class="fixed inset-0 bg-[#121212] z-[80] hidden flex-col overflow-y-auto hide-scrollbar pb-24 transition-transform duration-300 transform translate-y-full">
     
@@ -330,15 +330,11 @@
   <!-- ---------------------------------------------------- -->
   <main class="p-4 space-y-5">
     
-    <!-- Banner Video Principale -->
+    <!-- Banner Video Principale in alto -->
     <div class="relative rounded-2xl overflow-hidden border border-gray-800 bg-gray-900 shadow-2xl">
+      <!-- Il video è libero e pulito per consentire l'autoplay nativo -->
       <video id="banner-video" class="w-full h-48 object-cover" autoplay loop muted playsinline webkit-playsinline onloadedmetadata="this.muted=true; this.play()" src="https://files.catbox.moe/2a9rqy.mov"></video>
       <div class="absolute inset-0 bg-gradient-to-t from-[#121212] via-black/40 to-transparent pointer-events-none"></div>
-      
-      <!-- Tasto per aprire il banner video a schermo intero -->
-      <div onclick="openMediaFullscreen('https://files.catbox.moe/2a9rqy.mov', 'video')" class="absolute top-3 right-3 bg-black/60 backdrop-blur-md p-2.5 rounded-full z-20 cursor-pointer hover:bg-black/80 shadow-xl border border-gray-500/50 flex items-center justify-center">
-          <i data-lucide="maximize" class="w-5 h-5 text-white"></i>
-      </div>
 
       <div class="absolute bottom-3 left-4 right-4 pointer-events-none">
         <h1 class="text-2xl font-black text-white tracking-wide">Boston George 420</h1>
@@ -474,6 +470,7 @@
         if(!text) {
             return "";
         }
+        // Converte @username in link telegram cliccabili blu
         return text.replace(/@(\w+)/g, '<a href="https://t.me/$1" target="_blank" class="text-blue-400 font-bold hover:underline">@$1</a>');
     }
 
@@ -492,6 +489,7 @@
         
         allProducts = data || [];
         
+        // Regola speciale: Sposta i prodotti "Meet Up" in cima alla lista
         allProducts.sort((a, b) => {
             const aMeet = (a.category || '').includes('Meet Up');
             const bMeet = (b.category || '').includes('Meet Up');
@@ -547,7 +545,7 @@
             media = [{ url: p.media_url, type: p.media_type || 'image' }];
         }
 
-        // Costruiamo lo slider per questa singola scheda
+        // Costruiamo le immagini/video per questa singola scheda (SLIDER NATIVO)
         let mediaSliderHTML = '';
         media.forEach(m => {
             mediaSliderHTML += `<div class="w-full h-full flex-shrink-0 media-item relative">`;
@@ -559,7 +557,7 @@
                 mediaSliderHTML += `<img class="w-full h-full object-cover pointer-events-none" src="${imageUrl}" />`;
             }
             
-            // IL TASTINO "FANTASMA" PER APRIRE SOLO IL MEDIA A SCHERMO INTERO
+            // IL FAMOSO TASTINO CHE ALLARGA LA FOTO A SCHERMO INTERO:
             mediaSliderHTML += `
             <div onclick="openMediaFullscreen('${m.url}', '${m.type}')" class="absolute top-2 right-2 bg-black/60 backdrop-blur-md p-2.5 rounded-full z-[60] cursor-pointer hover:bg-black/80 shadow-xl border border-gray-500/50 flex items-center justify-center" style="pointer-events: auto;">
                 <i data-lucide="maximize" class="w-5 h-5 text-white"></i>
@@ -744,11 +742,6 @@
         setTimeout(() => { 
             modalElement.classList.remove('translate-y-full'); 
         }, 10);
-        
-        setTimeout(() => { 
-            lucide.createIcons(); 
-            forcePlayAll(); 
-        }, 300);
     }
 
     function closeProductModal() {
@@ -1066,6 +1059,10 @@
     document.addEventListener("DOMContentLoaded", () => {
         loadProducts();
     });
+
+  </script>
+</body>
+</html>
 
   </script>
 </body>
