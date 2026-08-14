@@ -2,6 +2,7 @@ import os
 import json
 import time
 import threading
+import uuid  # <-- AGGIUNTO per generare nomi unici per le foto
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import requests
 import telebot
@@ -16,7 +17,7 @@ ADMIN_ID = int(os.environ.get('ADMIN_ID', 0))
 
 bot = telebot.TeleBot(TELEGRAM_TOKEN)
 
-# Dizionario per memorizzare lo stato dell'amministratore durante l'inserimento dei dati
+# Dizionario per memorizzare lo stato dell'amministratore durante l'inserimento o modifica
 user_states = {}
 
 # --- HELPER SUPABASE REST API ---
@@ -57,6 +58,16 @@ def db_add_product(product_data):
             return False, f"Errore HTTP {r.status_code}: {r.text}"
     except Exception as e:
         return False, str(e)
+
+# --- NUOVA FUNZIONE: AGGIORNA PRODOTTO ESISTENTE ---
+def db_update_product(prod_id, update_data):
+    url = f"{SUPABASE_URL}/rest/v1/products?id=eq.{prod_id}"
+    try:
+        r = requests.patch(url, headers=get_headers(), json=update_data)
+        return r.status_code in [200, 204]
+    except Exception as e:
+        print(f"Errore aggiornamento prodotto: {e}")
+        return False
 
 def db_get_products():
     url = f"{SUPABASE_URL}/rest/v1/products?select=*&order=created_at.desc"
@@ -159,6 +170,31 @@ def db_add_user_trophy(target_id, trophy_name):
     except Exception as e:
         print(f"Errore assegnazione trofeo: {e}")
     return False, []
+
+# --- NUOVA FUNZIONE: UPLOAD IMMAGINI/VIDEO SU SUPABASE STORAGE ---
+def upload_to_supabase_storage(file_bytes, mime_type, file_extension):
+    # Genera un nome unico per il file così non ci sono doppioni
+    filename = f"media_{int(time.time())}_{uuid.uuid4().hex[:6]}.{file_extension}"
+    
+    # URL di destinazione nel tuo bucket 'prodotti'
+    url = f"{SUPABASE_URL}/storage/v1/object/prodotti/{filename}"
+    
+    headers = {
+        "apikey": SUPABASE_KEY,
+        "Authorization": f"Bearer {SUPABASE_KEY}",
+        "Content-Type": mime_type
+    }
+    try:
+        res = requests.post(url, headers=headers, data=file_bytes)
+        if res.status_code in [200, 201]:
+            # Restituisce il link pubblico definitivo!
+            return f"{SUPABASE_URL}/storage/v1/object/public/prodotti/{filename}"
+        else:
+            print(f"Errore Storage: {res.text}")
+            return None
+    except Exception as e:
+        print(f"Errore connessione Storage: {e}")
+        return None
 
 
 # --- SERVER API PER RICEVERE GLI ORDINI DALLA MINI APP ---
@@ -433,19 +469,7 @@ def handle_callbacks(call):
             user_id, call.message.message_id, reply_markup=get_media_done_keyboard()
         )
 
-    elif data == "done_media":
-        st = user_states.get(user_id, {})
-        if not st.get("media_list"):
-            bot.answer_callback_query(call.id, "❌ Invia almeno un file multimediale prima di continuare!", show_alert=True)
-            return
-        
-        st["step"] = "WAITING_NAME"
-        bot.send_message(
-            user_id, 
-            f"✅ Hai caricato {len(st['media_list'])} file!\n\n📝 Ora invia il NOME del prodotto:", 
-            reply_markup=get_cancel_keyboard()
-        )
-
+    # --- AGGIUNTA MODIFICA PRODOTTO ---
     elif data == "p_list":
         user_states.pop(user_id, None)
         prods = db_get_products()
@@ -458,14 +482,49 @@ def handle_callbacks(call):
             status_str = '🟢 In Vetrina' if st_val else '🔴 Nascosto'
             msg = f"📦 {p.get('name')}\n🏷 Categoria: {p.get('category')}\n👁 Stato: {status_str}"
             
+            # Qui abbiamo aggiunto il tasto Modifica
             markup = types.InlineKeyboardMarkup(row_width=2)
             markup.add(
-                types.InlineKeyboardButton("👁️ Attiva/Disattiva", callback_data=f"tog_{p['id']}_{st_val}"),
-                types.InlineKeyboardButton("🗑️ Elimina", callback_data=f"del_{p['id']}")
+                types.InlineKeyboardButton("👁️ On/Off", callback_data=f"tog_{p['id']}_{st_val}"),
+                types.InlineKeyboardButton("✏️ Modifica", callback_data=f"edit_{p['id']}")
             )
+            markup.add(types.InlineKeyboardButton("🗑️ Elimina", callback_data=f"del_{p['id']}"))
             bot.send_message(user_id, msg, reply_markup=markup)
             
         bot.send_message(user_id, "👇 Opzioni di navigazione:", reply_markup=get_cancel_keyboard())
+
+    # --- MENU DI MODIFICA (Sotto-categorie) ---
+    elif data.startswith("edit_"):
+        p_id = data.split("_")[1]
+        markup = types.InlineKeyboardMarkup(row_width=1)
+        markup.add(
+            types.InlineKeyboardButton("✏️ Modifica Nome", callback_data=f"edname_{p_id}"),
+            types.InlineKeyboardButton("📝 Modifica Descrizione", callback_data=f"eddesc_{p_id}"),
+            types.InlineKeyboardButton("💰 Modifica Prezzi", callback_data=f"edprc_{p_id}"),
+            types.InlineKeyboardButton("📸 Sostituisci Foto/Video", callback_data=f"edmedia_{p_id}"),
+            types.InlineKeyboardButton("🔙 Torna alla Lista", callback_data="p_list")
+        )
+        bot.edit_message_text("Cosa vuoi modificare di questo prodotto?", user_id, call.message.message_id, reply_markup=markup)
+
+    elif data.startswith("edname_"):
+        p_id = data.split("_")[1]
+        user_states[user_id] = {"step": "EDIT_NAME", "target_product": p_id}
+        bot.send_message(user_id, "✏️ Scrivi il NUOVO NOME per questo prodotto:", reply_markup=get_cancel_keyboard())
+
+    elif data.startswith("eddesc_"):
+        p_id = data.split("_")[1]
+        user_states[user_id] = {"step": "EDIT_DESC", "target_product": p_id}
+        bot.send_message(user_id, "📝 Scrivi la NUOVA DESCRIZIONE per questo prodotto:", reply_markup=get_cancel_keyboard())
+
+    elif data.startswith("edprc_"):
+        p_id = data.split("_")[1]
+        user_states[user_id] = {"step": "EDIT_PRICES", "target_product": p_id}
+        bot.send_message(user_id, "💰 Scrivi le NUOVE VARIANTI DI PREZZO.\nEsempio: 10g - 50, 25g - 100", reply_markup=get_cancel_keyboard())
+
+    elif data.startswith("edmedia_"):
+        p_id = data.split("_")[1]
+        user_states[user_id] = {"step": "WAITING_MEDIA_EDIT", "target_product": p_id, "media_list": []}
+        bot.send_message(user_id, "📸 Invia ORA le nuove foto o video (questo cancellerà quelle vecchie).\nPremi Fine quando hai caricato tutto.", reply_markup=get_media_done_keyboard())
 
     elif data.startswith("tog_"):
         parts = data.split("_")
@@ -486,9 +545,10 @@ def handle_callbacks(call):
 
             markup = types.InlineKeyboardMarkup(row_width=2)
             markup.add(
-                types.InlineKeyboardButton("👁️ Attiva/Disattiva", callback_data=f"tog_{p_id}_{new_st}"),
-                types.InlineKeyboardButton("🗑️ Elimina", callback_data=f"del_{p_id}")
+                types.InlineKeyboardButton("👁️ On/Off", callback_data=f"tog_{p_id}_{new_st}"),
+                types.InlineKeyboardButton("✏️ Modifica", callback_data=f"edit_{p_id}")
             )
+            markup.add(types.InlineKeyboardButton("🗑️ Elimina", callback_data=f"del_{p_id}"))
             try:
                 bot.edit_message_text(new_text, user_id, call.message.message_id, reply_markup=markup)
             except Exception as e:
@@ -506,6 +566,31 @@ def handle_callbacks(call):
                 pass
         else:
             bot.answer_callback_query(call.id, "❌ Errore durante l'eliminazione.")
+
+    elif data == "done_media":
+        st = user_states.get(user_id, {})
+        if not st.get("media_list"):
+            bot.answer_callback_query(call.id, "❌ Invia almeno un file multimediale prima di continuare!", show_alert=True)
+            return
+        
+        # Se stiamo creando un prodotto nuovo:
+        if st.get("step") == "WAITING_MEDIA":
+            st["step"] = "WAITING_NAME"
+            bot.send_message(
+                user_id, 
+                f"✅ Hai caricato {len(st['media_list'])} file!\n\n📝 Ora invia il NOME del prodotto:", 
+                reply_markup=get_cancel_keyboard()
+            )
+        # Se stiamo MODIFICANDO le foto di un prodotto esistente:
+        elif st.get("step") == "WAITING_MEDIA_EDIT":
+            p_id = st["target_product"]
+            media_list = st["media_list"]
+            first_url = media_list[0]["url"] if media_list else ""
+            first_type = media_list[0]["type"] if media_list else "image"
+            
+            db_update_product(p_id, {"media_list": media_list, "media_url": first_url, "media_type": first_type})
+            bot.send_message(user_id, "✅ Foto/Video aggiornati con successo nel prodotto!", reply_markup=get_admin_main_keyboard())
+            user_states.pop(user_id, None)
 
     elif data.startswith("ord_acc_"):
         parts = data.split("_")
@@ -536,7 +621,7 @@ def handle_callbacks(call):
         bot.send_message(user_id, f"🚚 Invia ora il Codice di Tracking per l'Ordine #{o_id}:", reply_markup=get_cancel_keyboard())
 
 
-# --- GESTIONE INVIO FOTO E VIDEO ---
+# --- GESTIONE INVIO FOTO E VIDEO (ORA SI SALVANO SU SUPABASE) ---
 @bot.message_handler(content_types=['photo', 'video'])
 def handle_media(message):
     user_id = message.chat.id
@@ -544,30 +629,49 @@ def handle_media(message):
         return
         
     state = user_states.get(user_id, {})
-    if state.get("step") != "WAITING_MEDIA":
+    if state.get("step") not in ["WAITING_MEDIA", "WAITING_MEDIA_EDIT"]:
         return
+
+    # Avvisa l'utente che il bot sta elaborando
+    wait_msg = bot.reply_to(message, "⏳ Elaborazione... sto caricando la foto sul tuo server Supabase, attendi...")
 
     if message.photo:
         file_id = message.photo[-1].file_id
         media_type = 'image'
+        mime = 'image/jpeg'
+        ext = 'jpg'
     else:
         file_id = message.video.file_id
         media_type = 'video'
+        mime = 'video/mp4'
+        ext = 'mp4'
 
+    # 1. Recupera il file da Telegram
     file_info = bot.get_file(file_id)
     file_url = f"https://api.telegram.org/file/bot{TELEGRAM_TOKEN}/{file_info.file_path}"
-
-    if "media_list" not in user_states[user_id]:
-        user_states[user_id]["media_list"] = []
-        
-    user_states[user_id]["media_list"].append({"url": file_url, "type": media_type})
-    tot = len(user_states[user_id]["media_list"])
     
-    bot.reply_to(
-        message, 
-        f"📸 Media #{tot} aggiunto!\n\nPuoi inviare altri file oppure premere **✅ Fine Caricamento Media** in basso per proseguire.", 
-        reply_markup=get_media_done_keyboard()
-    )
+    try:
+        # Scarica in memoria
+        file_bytes = requests.get(file_url).content
+        
+        # 2. Carica definitivamente su Supabase Storage!
+        public_url = upload_to_supabase_storage(file_bytes, mime, ext)
+        
+        if public_url:
+            if "media_list" not in user_states[user_id]:
+                user_states[user_id]["media_list"] = []
+                
+            user_states[user_id]["media_list"].append({"url": public_url, "type": media_type})
+            tot = len(user_states[user_id]["media_list"])
+            
+            bot.edit_message_text(
+                f"✅ Salvato per sempre!\n📸 Media #{tot} aggiunto correttamente.\n\nPuoi inviare altri file oppure premere **✅ Fine Caricamento Media** in basso per proseguire.", 
+                user_id, wait_msg.message_id, reply_markup=get_media_done_keyboard()
+            )
+        else:
+            bot.edit_message_text("❌ Si è verificato un errore durante il caricamento su Supabase.", user_id, wait_msg.message_id)
+    except Exception as e:
+        bot.edit_message_text(f"❌ Errore scaricamento da Telegram: {e}", user_id, wait_msg.message_id)
 
 
 # --- WIZARD TESTUALE PER L'ADMIN ---
@@ -609,7 +713,38 @@ def handle_admin_text(message):
             bot.reply_to(message, "❌ Formato errato. Usa: /trofeo ID_UTENTE NOME_TROFEO")
         return
 
-    if step == "WAITING_NAME":
+    # --- RISPOSTE ALLA FUNZIONE MODIFICA ---
+    if step == "EDIT_NAME":
+        db_update_product(state["target_product"], {"name": message.text})
+        bot.reply_to(message, "✅ Nome aggiornato con successo!", reply_markup=get_admin_main_keyboard())
+        user_states.pop(user_id, None)
+
+    elif step == "EDIT_DESC":
+        db_update_product(state["target_product"], {"description": message.text})
+        bot.reply_to(message, "✅ Descrizione aggiornata con successo!", reply_markup=get_admin_main_keyboard())
+        user_states.pop(user_id, None)
+
+    elif step == "EDIT_PRICES":
+        try:
+            clean_text = message.text.replace("–", "-").replace("—", "-").replace("):", "").replace(")", "").strip()
+            raw_variants = clean_text.split(",")
+            prices = []
+            for r in raw_variants:
+                if "-" in r:
+                    qty = r.split("-")[0].strip()
+                    price_str = r.split("-")[1].replace("€", "").strip()
+                    prices.append({"qty": qty, "price": float(price_str)})
+            if not prices:
+                raise ValueError("Nessun formato valido.")
+            db_update_product(state["target_product"], {"price_options": prices})
+            bot.reply_to(message, "✅ Prezzi aggiornati con successo!", reply_markup=get_admin_main_keyboard())
+            user_states.pop(user_id, None)
+        except Exception:
+            bot.reply_to(message, "❌ Formato errato. Esempio corretto: 10g - 50, 25g - 100", reply_markup=get_cancel_keyboard())
+            return
+
+    # --- LOGICA STANDARD DI CREAZIONE NUOVO PRODOTTO ---
+    elif step == "WAITING_NAME":
         state["name"] = message.text
         state["step"] = "WAITING_DESC"
         bot.reply_to(
@@ -629,7 +764,6 @@ def handle_admin_text(message):
 
     elif step == "WAITING_PRICES":
         try:
-            # SISTEMA DI PULIZIA ERRORI BATTITURA (Es. rimuove parentesi o emoji finali messe per sbaglio)
             clean_text = message.text.replace("–", "-").replace("—", "-").replace("):", "").replace(")", "").strip()
             raw_variants = clean_text.split(",")
             prices = []
@@ -651,10 +785,7 @@ def handle_admin_text(message):
             )
             return
 
-        # Composizione dati da mandare a Supabase
         media_list = state.get("media_list", [])
-        
-        # Gestisce i vecchi fallback per compatibilità retroattiva
         first_url = media_list[0]["url"] if media_list else ""
         first_type = media_list[0]["type"] if media_list else "image"
 
@@ -669,7 +800,6 @@ def handle_admin_text(message):
             "in_showcase": True
         }
 
-        # Salvataggio nel Database
         success, err_msg = db_add_product(payload)
         
         if success:
