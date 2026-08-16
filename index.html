@@ -11,6 +11,11 @@
   <script src="https://unpkg.com/lucide@latest"></script>
   
   <style>
+    /* Aggiunto overscroll-behavior-y: none per l'antiswipe (blocca l'effetto rimbalzo/pull-to-refresh) */
+    html, body {
+        overscroll-behavior-y: none; 
+    }
+    
     body { 
         background-color: #121212; 
         color: #f3f4f6; 
@@ -70,6 +75,20 @@
     const tg = window.Telegram?.WebApp;
     if (tg) {
         tg.expand();
+        
+        // ----------------------------------------------------
+        // ANTISWIPE - Previene la chiusura accidentale della WebApp
+        // ----------------------------------------------------
+        try {
+            if (tg.disableVerticalSwipes) {
+                tg.disableVerticalSwipes();
+            }
+            if (tg.isVerticalSwipesEnabled !== undefined) {
+                tg.isVerticalSwipesEnabled = false;
+            }
+        } catch(err) {
+            console.error("Antiswipe non supportato su questa versione:", err);
+        }
     }
   </script>
 
@@ -1059,10 +1078,6 @@
     document.addEventListener("DOMContentLoaded", () => {
         loadProducts();
     });
-
-  </script>
-</body>
-</html>
 
   </script>
 </body>
