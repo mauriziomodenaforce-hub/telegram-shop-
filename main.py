@@ -176,8 +176,8 @@ def upload_to_supabase_storage(file_bytes, mime_type, file_extension):
     # Genera un nome unico per il file così non ci sono doppioni
     filename = f"media_{int(time.time())}_{uuid.uuid4().hex[:6]}.{file_extension}"
     
-    # URL di destinazione nel tuo bucket 'prodotti'
-    url = f"{SUPABASE_URL}/storage/v1/object/prodotti/{filename}"
+    # URL di destinazione nel tuo bucket 'products'
+    url = f"{SUPABASE_URL}/storage/v1/object/products/{filename}"
     
     headers = {
         "apikey": SUPABASE_KEY,
@@ -188,7 +188,7 @@ def upload_to_supabase_storage(file_bytes, mime_type, file_extension):
         res = requests.post(url, headers=headers, data=file_bytes)
         if res.status_code in [200, 201]:
             # Restituisce il link pubblico definitivo!
-            return f"{SUPABASE_URL}/storage/v1/object/public/prodotti/{filename}"
+            return f"{SUPABASE_URL}/storage/v1/object/public/products/{filename}"
         else:
             print(f"Errore Storage: {res.text}")
             return None
