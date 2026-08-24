@@ -171,6 +171,25 @@ def db_add_user_trophy(target_id, trophy_name):
         print(f"Errore assegnazione trofeo: {e}")
     return False, []
 
+# --- GESTIONE GIVEAWAY SUPABASE ---
+def db_get_giveaway():
+    url = f"{SUPABASE_URL}/rest/v1/giveaway?id=eq.1"
+    try:
+        r = requests.get(url, headers=get_headers())
+        if r.status_code == 200 and len(r.json()) > 0:
+            return r.json()[0]
+    except Exception:
+        pass
+    return {"is_active": False, "prize": "N/D", "description": "N/D", "end_date": "N/D", "participants": []}
+
+def db_update_giveaway(payload):
+    url = f"{SUPABASE_URL}/rest/v1/giveaway?id=eq.1"
+    try:
+        r = requests.patch(url, headers=get_headers(), json=payload)
+        return r.status_code in [200, 204]
+    except Exception:
+        return False
+
 # --- NUOVA FUNZIONE: UPLOAD IMMAGINI/VIDEO SU SUPABASE STORAGE ---
 def upload_to_supabase_storage(file_bytes, mime_type, file_extension):
     # Genera un nome unico per il file così non ci sono doppioni
@@ -232,6 +251,10 @@ class HealthCheckHandler(BaseHTTPRequestHandler):
             # Salva su Supabase
             order_id = db_save_order(user_id, username, cart, total, address)
 
+            # --- ASSEGNAZIONE AUTOMATICA 50 PUNTI PER ORDINE ---
+            if user_id and str(user_id) != "0":
+                db_update_user_points(int(user_id), 50)
+
             # Prepara il resoconto degli oggetti
             items_text = "\n".join([f"• {i['qty']}x {i['name']} - €{i['price']}" for i in cart])
 
@@ -241,6 +264,7 @@ class HealthCheckHandler(BaseHTTPRequestHandler):
                 f"{items_text}\n"
                 f"📍 Indirizzo / Ritrovo: {address}\n"
                 f"Totale indicativo: €{total}\n\n"
+                "🎁 Hai guadagnato 50 Punti VIP per questo ordine!\n"
                 "Un operatore prenderà in carico la tua richiesta a breve."
             )
             if user_id and str(user_id) != "0":
@@ -297,7 +321,8 @@ def get_admin_main_keyboard():
         types.InlineKeyboardButton("📦 Gestione Prodotti & Media", callback_data="m_prod"),
         types.InlineKeyboardButton("🛒 Gestione Ordini Ricevuti", callback_data="m_ord"),
         types.InlineKeyboardButton("📜 Storico Completo Ordini", callback_data="m_hist"),
-        types.InlineKeyboardButton("🏆 Punti & Trofei Utenti", callback_data="m_pts")
+        types.InlineKeyboardButton("🏆 Punti & Trofei Utenti", callback_data="m_pts"),
+        types.InlineKeyboardButton("🎁 Gestione Giveaway", callback_data="m_gw")
     )
     return markup
 
@@ -331,18 +356,12 @@ def send_welcome(message):
     username = message.from_user.username
     db_register_user(user_id, username)
 
-    # --- INIZIO MODIFICA: BENVENUTO AGGIORNATO E PROFESSIONALE ---
     welcome_text = (
-        "👋 *Benvenuto nello shop ufficiale di Boston George 420!*\n\n"
-        "Un ecosistema rapido, sicuro e interattivo per consultare il nostro catalogo in tempo reale, effettuare ordini e monitorare ogni fase comodamente da Telegram.\n\n"
-        "🗺️ *Guida Rapida alla Vetrina*\n"
-        "Accedendo tramite il tasto in basso, troverai un'interfaccia moderna e intuitiva:\n\n"
-        "📂 *Filtri Categorie*: Trova subito prodotti per spedizione (Ship) o ritrovo (Meet Up).\n"
-        "🔍 *Dettaglio Prodotto*: Foto e video in HD con tutte le varianti di prezzo.\n"
-        "🛒 *Carrello Rapido*: Gestisci gli acquisti e invia l'ordine in un tap.\n"
-        "🏆 *Punti & Trofei*: Controlla il tuo saldo e i premi sbloccati.\n"
-        "🚚 *Tracking Ordini*: Traccia il tuo pacco in tempo reale.\n\n"
-        "👇 *Clicca sul pulsante qui sotto per aprire la vetrina!*"
+        "👋 Benvenuti nello shop di Boston George 420!\n\n"
+        "Qui troverete tutti i prodotti ideali per voi o per il vostro business.\n\n"
+        "🤝 Consegna a mano disponibile (Meet Up)\n"
+        "🚚 Spedizioni (Ship)\n\n"
+        "🛍️ Cliccate in basso per aprire la vetrina!"
     )
 
     markup = types.InlineKeyboardMarkup()
@@ -350,8 +369,7 @@ def send_welcome(message):
         btn = types.InlineKeyboardButton("🛍 Apri la vetrina", web_app=types.WebAppInfo(WEB_APP_URL))
         markup.add(btn)
 
-    bot.send_message(user_id, welcome_text, parse_mode="Markdown", reply_markup=markup)
-    # --- FINE MODIFICA ---
+    bot.send_message(user_id, welcome_text, reply_markup=markup)
 
 
 # --- COMANDI AMMINISTRATORE ---
@@ -384,6 +402,50 @@ def handle_callbacks(call):
     if data == "m_main":
         user_states.pop(user_id, None)
         bot.edit_message_text("⚙️ PANNELLO GESTIONALE AMMINISTRATORE", user_id, call.message.message_id, reply_markup=get_admin_main_keyboard())
+
+    elif data == "m_gw":
+        user_states.pop(user_id, None)
+        gw = db_get_giveaway()
+        st_val = gw.get("is_active", False)
+        status = "🟢 ATTIVO" if st_val else "🔴 INATTIVO"
+        
+        msg = (
+            f"🎁 GESTIONE GIVEAWAY\n\n"
+            f"Stato: {status}\n"
+            f"Premio in Palio: {gw.get('prize', 'N/D')}\n"
+            f"Descrizione: {gw.get('description', 'N/D')}\n"
+            f"Scadenza: {gw.get('end_date', 'N/D')}\n"
+            f"Iscritti Totali: {len(gw.get('participants', []))}"
+        )
+        
+        markup = types.InlineKeyboardMarkup(row_width=1)
+        markup.add(
+            types.InlineKeyboardButton(f"👁️ Cambia Stato (Attiva/Disattiva)", callback_data=f"gw_tog_{not st_val}"),
+            types.InlineKeyboardButton("🏆 Imposta Premio", callback_data="gw_prize"),
+            types.InlineKeyboardButton("📝 Imposta Descrizione", callback_data="gw_desc"),
+            types.InlineKeyboardButton("⏳ Imposta Scadenza", callback_data="gw_date"),
+            types.InlineKeyboardButton("🔙 Torna al Menu", callback_data="m_main")
+        )
+        bot.edit_message_text(msg, user_id, call.message.message_id, reply_markup=markup)
+
+    elif data.startswith("gw_tog_"):
+        new_st = data.split("_")[2] == 'True'
+        db_update_giveaway({"is_active": new_st})
+        bot.answer_callback_query(call.id, "✅ Stato Giveaway Aggiornato!")
+        call.data = "m_gw"
+        handle_callbacks(call)
+
+    elif data == "gw_prize":
+        user_states[user_id] = {"step": "WAITING_GW_PRIZE"}
+        bot.send_message(user_id, "🏆 Scrivi il nuovo PREMIO in palio per il Giveaway:", reply_markup=get_cancel_keyboard())
+        
+    elif data == "gw_desc":
+        user_states[user_id] = {"step": "WAITING_GW_DESC"}
+        bot.send_message(user_id, "📝 Scrivi la nuova DESCRIZIONE (es. Partecipa all'estrazione esclusiva):", reply_markup=get_cancel_keyboard())
+        
+    elif data == "gw_date":
+        user_states[user_id] = {"step": "WAITING_GW_DATE"}
+        bot.send_message(user_id, "⏳ Scrivi la SCADENZA (es. 25 Dicembre 2026):", reply_markup=get_cancel_keyboard())
 
     elif data == "m_prod":
         user_states.pop(user_id, None)
@@ -718,6 +780,23 @@ def handle_admin_text(message):
                 bot.reply_to(message, "❌ Errore: Utente non trovato.")
         except Exception:
             bot.reply_to(message, "❌ Formato errato. Usa: /trofeo ID_UTENTE NOME_TROFEO")
+        return
+
+    # --- SALVATAGGIO INPUT GIVEAWAY ---
+    if step == "WAITING_GW_PRIZE":
+        db_update_giveaway({"prize": message.text})
+        bot.reply_to(message, "✅ Premio aggiornato con successo!", reply_markup=get_admin_main_keyboard())
+        user_states.pop(user_id, None)
+        return
+    elif step == "WAITING_GW_DESC":
+        db_update_giveaway({"description": message.text})
+        bot.reply_to(message, "✅ Descrizione aggiornata con successo!", reply_markup=get_admin_main_keyboard())
+        user_states.pop(user_id, None)
+        return
+    elif step == "WAITING_GW_DATE":
+        db_update_giveaway({"end_date": message.text})
+        bot.reply_to(message, "✅ Scadenza aggiornata con successo!", reply_markup=get_admin_main_keyboard())
+        user_states.pop(user_id, None)
         return
 
     # --- RISPOSTE ALLA FUNZIONE MODIFICA ---
