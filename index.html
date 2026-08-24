@@ -55,7 +55,7 @@
         color: white !important; 
     }
 
-    /* --- TUTORIAL ULTRA-PREMIUM 100/100 --- */
+    /* --- STILI TUTORIAL ULTRA-PREMIUM 100/100 E GIVEAWAY --- */
     #tutorial-overlay {
         backdrop-filter: blur(16px);
         -webkit-backdrop-filter: blur(16px);
@@ -240,69 +240,73 @@
     </button>
   </div>
 
-  <!-- Modale Trofei (RIDISEGNATA PREMIUM FALSARIO STILE) -->
+  <!-- ---------------------------------------------------- -->
+  <!-- MODALE TROFEI PERSUASIVA (PREMIUM 100/100)           -->
+  <!-- ---------------------------------------------------- -->
   <div id="trophies-modal" class="fixed inset-0 bg-black/80 z-[120] flex items-center justify-center p-4 hidden backdrop-blur-md">
-    <div class="bg-[#181818] border border-amber-500/30 rounded-3xl w-full max-w-sm p-6 space-y-5 shadow-[0_0_40px_rgba(245,158,11,0.15)] relative overflow-hidden">
+    <div class="bg-[#181818] border border-amber-500/30 rounded-[2rem] w-full max-w-sm p-6 space-y-5 shadow-[0_0_40px_rgba(245,158,11,0.15)] relative overflow-hidden">
       <!-- Sfumatura Oro in cima -->
       <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-600 via-yellow-400 to-amber-600"></div>
       
       <div class="flex justify-between items-center border-b border-gray-800 pb-3">
         <h3 class="font-black text-xl text-white flex items-center">
-          <i data-lucide="award" class="w-6 h-6 text-amber-400 mr-2"></i> Punti & Trofei
+          <i data-lucide="award" class="w-6 h-6 text-amber-400 mr-2"></i> Area VIP
         </h3>
-        <button onclick="closeTrophiesModal()" class="text-gray-400 hover:text-white bg-gray-800 p-1.5 rounded-full"><i data-lucide="x" class="w-4 h-4"></i></button>
+        <button onclick="closeTrophiesModal()" class="text-gray-400 hover:text-white bg-gray-800 p-1.5 rounded-full transition-colors"><i data-lucide="x" class="w-4 h-4"></i></button>
       </div>
       
       <!-- Saldo e Progresso -->
-      <div class="bg-gradient-to-b from-gray-800 to-gray-900 border border-gray-700 rounded-2xl p-5 text-center relative overflow-hidden">
-        <div class="absolute -right-4 -top-4 w-20 h-20 bg-amber-500/10 rounded-full blur-xl"></div>
-        <span class="text-[10px] uppercase text-amber-500 font-bold tracking-[0.2em] mb-1 block">Il tuo saldo VIP</span>
-        <div class="text-4xl font-black text-white flex justify-center items-center space-x-2">
-          <span id="user-points-val">--</span> <i data-lucide="sparkles" class="w-6 h-6 text-amber-400"></i>
+      <div class="bg-gradient-to-b from-gray-800 to-gray-900 border border-gray-700 rounded-2xl p-5 text-center relative overflow-hidden shadow-inner">
+        <div class="absolute -right-4 -top-4 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl pointer-events-none"></div>
+        <span class="text-[10px] uppercase text-amber-500 font-bold tracking-[0.2em] mb-1 block">Il tuo saldo Punti</span>
+        <div class="text-5xl font-black text-white flex justify-center items-center space-x-2 drop-shadow-md">
+          <span id="user-points-val">--</span> <i data-lucide="sparkles" class="w-7 h-7 text-amber-400"></i>
         </div>
         
         <!-- Barra progresso -->
-        <div class="mt-4 space-y-1.5">
-          <div class="flex justify-between text-[10px] font-bold text-gray-400">
+        <div class="mt-5 space-y-2 relative z-10">
+          <div class="flex justify-between text-[11px] font-bold text-gray-400 uppercase tracking-wider">
             <span>Progresso Trofeo</span>
-            <span>500 pt</span>
+            <span class="text-amber-400">500 pt</span>
           </div>
-          <div class="w-full bg-black rounded-full h-2.5 border border-gray-700">
-            <div id="points-progress-bar" class="bg-gradient-to-r from-amber-500 to-yellow-300 h-full rounded-full shadow-[0_0_10px_rgba(245,158,11,0.5)] transition-all duration-500" style="width: 0%;"></div>
+          <div class="w-full bg-black rounded-full h-3 border border-gray-700 shadow-inner overflow-hidden relative">
+            <div id="points-progress-bar" class="bg-gradient-to-r from-amber-600 via-amber-400 to-yellow-300 h-full rounded-full shadow-[0_0_12px_rgba(245,158,11,0.8)] transition-all duration-1000 ease-out" style="width: 0%;"></div>
           </div>
         </div>
       </div>
 
-      <!-- Legenda Persuasiva -->
-      <div class="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4 text-xs text-amber-100/80 leading-relaxed">
-        <p class="mb-2"><b class="text-amber-400">🎁 Bonus Benvenuto:</b> Hai ricevuto 50 Punti omaggio alla tua iscrizione!</p>
-        <p><b class="text-amber-400">Come funziona?</b> Ogni ordine effettuato ti garantisce <b>50 Punti VIP</b>. Raggiungi quota <b>500 Punti</b> (10 ordini) per sbloccare il <b>Trofeo Oro</b>: avrai diritto a un <b class="text-white">OMAGGIO A SCELTA</b> sul tuo prossimo acquisto. Continua a ordinare per scalare le vette!</p>
+      <!-- Legenda Persuasiva (Niente numeri limitanti di ordini) -->
+      <div class="bg-gradient-to-br from-amber-500/10 to-transparent border border-amber-500/20 rounded-2xl p-4 text-xs text-amber-100/90 leading-relaxed shadow-sm">
+        <p class="mb-2"><b class="text-amber-400 uppercase tracking-wider">🎁 Bonus Attivo:</b> Il tuo account include già <b class="text-white">50 Punti VIP di Benvenuto</b> caricati e pronti all'uso!</p>
+        <p><b class="text-amber-400 uppercase tracking-wider">La scalata:</b> Ogni tuo ordine ti garantisce <b class="text-white">50 Punti VIP</b> extra. Raggiungi la soglia d'élite di <b class="text-amber-400 text-sm">500 Punti</b> per sbloccare il Trofeo Oro e riscattare un <b class="text-white font-black uppercase underline decoration-amber-500">Omaggio a tua scelta</b> sul prossimo acquisto. L'esclusività ti aspetta.</p>
       </div>
 
       <!-- Bacheca -->
       <div class="space-y-2">
-        <span class="text-[10px] font-bold text-gray-500 uppercase tracking-[0.1em] block ml-1">La tua Bacheca</span>
+        <span class="text-[10px] font-bold text-gray-500 uppercase tracking-[0.1em] block ml-1">Bacheca Trofei</span>
         <div id="user-trophies-list" class="space-y-2 max-h-32 overflow-y-auto pr-1"></div>
       </div>
     </div>
   </div>
 
-  <!-- NUOVA MODALE GIVEAWAY -->
-  <div id="giveaway-modal" class="fixed inset-0 bg-black/80 z-[120] flex items-center justify-center p-4 hidden backdrop-blur-md">
-    <div class="bg-[#181818] border border-purple-500/30 rounded-3xl w-full max-w-sm p-6 space-y-5 shadow-[0_0_40px_rgba(168,85,247,0.2)] relative overflow-hidden">
-      <!-- Sfumatura viola/rosa in cima -->
-      <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-purple-600 via-pink-500 to-yellow-400"></div>
+  <!-- ---------------------------------------------------- -->
+  <!-- MODALE GIVEAWAY (STELLARE E INTERATTIVA)             -->
+  <!-- ---------------------------------------------------- -->
+  <div id="giveaway-modal" class="fixed inset-0 bg-black/85 z-[120] flex items-center justify-center p-4 hidden backdrop-blur-xl">
+    <div class="bg-[#121212] border border-purple-500/40 rounded-[2rem] w-full max-w-sm p-7 space-y-6 shadow-[0_0_50px_rgba(168,85,247,0.25)] relative overflow-hidden">
+      <!-- Sfumatura Magica -->
+      <div class="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-purple-600 via-pink-500 to-yellow-400"></div>
       
       <div class="flex justify-between items-center border-b border-gray-800 pb-3">
         <h3 class="font-black text-xl text-white flex items-center">
-          <i data-lucide="gift" class="w-6 h-6 text-purple-400 mr-2"></i> Giveaway
+          <i data-lucide="gift" class="w-6 h-6 text-purple-400 mr-2"></i> Evento Speciale
         </h3>
-        <button onclick="closeGiveawayModal()" class="text-gray-400 hover:text-white bg-gray-800 p-1.5 rounded-full"><i data-lucide="x" class="w-4 h-4"></i></button>
+        <button onclick="closeGiveawayModal()" class="text-gray-400 hover:text-white bg-gray-800 p-2 rounded-full transition"><i data-lucide="x" class="w-4 h-4"></i></button>
       </div>
       
-      <!-- Contenuto dinamico caricato dal DB -->
-      <div id="giveaway-content" class="space-y-4">
-         <!-- Si riempie con JS -->
+      <!-- Contenuto dinamico (caricato da JS) -->
+      <div id="giveaway-content" class="space-y-5">
+         <!-- Si riempie automaticamente -->
       </div>
     </div>
   </div>
@@ -458,18 +462,20 @@
         <i data-lucide="shopping-bag" class="w-4 h-4"></i>
         <span>Sfoglia prodotti</span>
       </button>
-      <button onclick="openTrophiesModal()" class="bg-gray-800 hover:bg-gray-700 border border-amber-500/30 text-amber-300 font-extrabold py-3.5 px-3 rounded-xl flex items-center justify-center space-x-1.5 text-xs">
+      <button onclick="openTrophiesModal()" class="bg-gray-800 hover:bg-gray-700 border border-amber-500/30 text-amber-300 font-extrabold py-3.5 px-3 rounded-xl flex items-center justify-center space-x-1.5 text-xs transition-colors">
         <i data-lucide="award" class="w-4 h-4 text-amber-400"></i>
-        <span>I miei trofei</span>
+        <span>Area VIP</span>
       </button>
     </div>
 
-    <!-- TASTO GIVEAWAY STELLARE INTERATTIVO AGGIUNTO QUI -->
-    <button onclick="openGiveawayModal()" class="w-full mt-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-extrabold py-4 px-4 rounded-xl flex items-center justify-center space-x-2 shadow-[0_0_20px_rgba(168,85,247,0.4)] transition-all">
-      <i data-lucide="star" class="w-5 h-5 text-yellow-300 fill-yellow-300"></i>
-      <span class="uppercase tracking-wider text-sm text-yellow-100">Partecipa al Giveaway</span>
-      <i data-lucide="sparkles" class="w-5 h-5 text-yellow-300"></i>
+    <!-- TASTO GIVEAWAY GALATTICO AGGIUNTO ESATTAMENTE QUI (SOTTO I DUE PULSANTI) -->
+    <button onclick="openGiveawayModal()" class="w-full relative overflow-hidden bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 bg-[length:200%_auto] animate-[gradient_3s_linear_infinite] hover:from-purple-500 hover:to-pink-500 text-white font-black py-4 px-4 rounded-2xl flex items-center justify-center space-x-2 shadow-[0_0_20px_rgba(168,85,247,0.4)] transition-all transform hover:scale-[1.02]">
+      <div class="absolute inset-0 bg-white/20 blur-md pointer-events-none"></div>
+      <i data-lucide="star" class="w-5 h-5 text-yellow-300 fill-yellow-300 z-10 animate-pulse"></i>
+      <span class="uppercase tracking-[0.15em] text-sm text-yellow-100 z-10 drop-shadow-md">Partecipa al Giveaway</span>
+      <i data-lucide="sparkles" class="w-5 h-5 text-yellow-300 z-10 animate-pulse"></i>
     </button>
+    <style>@keyframes gradient { 0% {background-position: 0% 50%;} 50% {background-position: 100% 50%;} 100% {background-position: 0% 50%;} }</style>
 
     <!-- Filtri delle Categorie -->
     <div class="space-y-3 pt-2" id="products-section">
@@ -498,6 +504,7 @@
   <!-- TUTORIAL DINAMICO ULTRA-PREMIUM (PRIMO ACCESSO)      -->
   <!-- ---------------------------------------------------- -->
   <div id="tutorial-overlay" class="fixed inset-0 bg-black/70 z-[200] hidden flex-col justify-between p-6">
+    
     <!-- Header: Tasto Skip Minimal -->
     <div class="flex justify-end w-full pt-4">
       <button onclick="closeTutorial()" class="text-gray-500 hover:text-white text-[11px] font-bold uppercase tracking-[0.2em] transition-colors flex items-center bg-black/40 px-3 py-1.5 rounded-full backdrop-blur-sm border border-white/5">
@@ -513,6 +520,7 @@
 
       <!-- Contenitore animato per Icona, Titolo e Descrizione -->
       <div id="tutor-content-wrapper" class="content-fade space-y-5 py-4">
+        
         <!-- Icona -->
         <div class="w-20 h-20 bg-gray-900/80 border border-white/5 rounded-full flex items-center justify-center mx-auto text-emerald-400 shadow-inner relative">
           <div class="absolute inset-0 bg-emerald-500/10 rounded-full blur-xl"></div>
@@ -520,6 +528,7 @@
             <!-- Icona iniettata da JS -->
           </div>
         </div>
+
         <!-- Testi -->
         <div class="space-y-3">
           <h3 id="tutor-title" class="text-xl font-black text-white tracking-wide">Titolo</h3>
@@ -542,6 +551,7 @@
           <i data-lucide="arrow-right" id="tutor-next-icon" class="w-4 h-4 ml-1"></i>
         </button>
       </div>
+
     </div>
     
     <div class="pb-10"></div>
@@ -586,6 +596,7 @@
         modal.classList.add('hidden');
         modal.classList.remove('flex');
         
+        // Svuota il contenuto così il video si stoppa e non continua a suonare
         content.innerHTML = ''; 
     }
 
@@ -608,6 +619,7 @@
     window.addEventListener('touchstart', forcePlayAll, {once: true});
     window.addEventListener('click', forcePlayAll, {once: true});
 
+    // --- FUNZIONI DI BASE UI ---
     function toggleDrawer() {
       const drawer = document.getElementById('drawer');
       const overlay = document.getElementById('drawer-overlay');
@@ -625,6 +637,7 @@
         if(!text) {
             return "";
         }
+        // Converte @username in link telegram cliccabili blu
         return text.replace(/@(\w+)/g, '<a href="https://t.me/$1" target="_blank" class="text-blue-400 font-bold hover:underline">@$1</a>');
     }
 
@@ -643,6 +656,7 @@
         
         allProducts = data || [];
         
+        // Regola speciale: Sposta i prodotti "Meet Up" in cima alla lista
         allProducts.sort((a, b) => {
             const aMeet = (a.category || '').includes('Meet Up');
             const bMeet = (b.category || '').includes('Meet Up');
@@ -698,6 +712,7 @@
             media = [{ url: p.media_url, type: p.media_type || 'image' }];
         }
 
+        // Costruiamo le immagini/video per questa singola scheda (SLIDER NATIVO)
         let mediaSliderHTML = '';
         media.forEach(m => {
             mediaSliderHTML += `<div class="w-full h-full flex-shrink-0 media-item relative">`;
@@ -709,6 +724,7 @@
                 mediaSliderHTML += `<img class="w-full h-full object-cover pointer-events-none" src="${imageUrl}" />`;
             }
             
+            // IL FAMOSO TASTINO CHE ALLARGA LA FOTO A SCHERMO INTERO:
             mediaSliderHTML += `
             <div onclick="openMediaFullscreen('${m.url}', '${m.type}')" class="absolute top-2 right-2 bg-black/60 backdrop-blur-md p-2.5 rounded-full z-[60] cursor-pointer hover:bg-black/80 shadow-xl border border-gray-500/50 flex items-center justify-center" style="pointer-events: auto;">
                 <i data-lucide="maximize" class="w-5 h-5 text-white"></i>
@@ -806,6 +822,7 @@
                 modaleMediaHTML += `<img class="w-full h-full object-cover pointer-events-none" src="${m.url}" />`;
             }
             
+            // Anche nella modale, il tastino per espandere a tutto schermo il video!
             modaleMediaHTML += `
             <div onclick="openMediaFullscreen('${m.url}', '${m.type}')" class="absolute top-2 right-2 bg-black/60 backdrop-blur-md p-2.5 rounded-full z-[60] cursor-pointer hover:bg-black/80 shadow-xl border border-gray-500/50 flex items-center justify-center" style="pointer-events: auto;">
                 <i data-lucide="maximize" class="w-5 h-5 text-white"></i>
@@ -1084,7 +1101,7 @@
       }
     }
 
-    // --- MODALE PUNTI E TROFEI (AGGIORNATA) ---
+    // --- MODALE PUNTI E TROFEI (AGGIORNATA PREMIUM) ---
     async function openTrophiesModal() {
       document.getElementById('trophies-modal').classList.remove('hidden');
       const userId = tg?.initDataUnsafe?.user?.id || 0;
@@ -1101,11 +1118,15 @@
         
         if (data && data.length > 0) {
           const user = data[0]; 
-          const pts = user.points || 0;
+          // Default 50 se vuoto, come i nuovi registrati
+          const pts = user.points || 50; 
           document.getElementById('user-points-val').innerText = pts;
           
           let progPercent = Math.min(100, (pts / 500) * 100);
-          document.getElementById('points-progress-bar').style.width = `${progPercent}%`;
+          // Effetto riempimento animato
+          setTimeout(() => {
+              document.getElementById('points-progress-bar').style.width = `${progPercent}%`;
+          }, 100);
 
           let trophies = user.trophies || [];
           if (typeof trophies === 'string') { 
@@ -1122,7 +1143,7 @@
               listDiv.innerHTML = tHTML;
               lucide.createIcons();
           } else { 
-              listDiv.innerHTML = `<div class="text-xs text-gray-500 text-center py-3">Nessun trofeo sbloccato al momento. Raggiungi 500pt!</div>`; 
+              listDiv.innerHTML = `<div class="text-xs text-gray-500 text-center py-3">Nessun trofeo sbloccato al momento. Raggiungi i 500pt!</div>`; 
           }
         }
       } catch(e) {
@@ -1132,9 +1153,10 @@
 
     function closeTrophiesModal() { 
         document.getElementById('trophies-modal').classList.add('hidden'); 
+        document.getElementById('points-progress-bar').style.width = "0%"; // reset animazione
     }
 
-    // --- MODALE E LOGICA GIVEAWAY (NUOVA) ---
+    // --- MODALE E LOGICA GIVEAWAY (STELLARE) ---
     async function openGiveawayModal() {
         if(tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
         document.getElementById('giveaway-modal').classList.remove('hidden');
@@ -1149,7 +1171,7 @@
                 content.innerHTML = `
                     <div class="text-center py-6 space-y-3">
                         <i data-lucide="clock" class="w-12 h-12 text-gray-600 mx-auto"></i>
-                        <p class="text-gray-300 font-medium">Nessun Giveaway attivo al momento.</p>
+                        <p class="text-gray-300 font-medium">Nessun Evento Speciale attivo al momento.</p>
                         <p class="text-xs text-gray-500">Resta sintonizzato per le prossime sorprese!</p>
                     </div>`;
             } else {
