@@ -331,12 +331,18 @@ def send_welcome(message):
     username = message.from_user.username
     db_register_user(user_id, username)
 
+    # --- INIZIO MODIFICA: BENVENUTO AGGIORNATO E PROFESSIONALE ---
     welcome_text = (
-        "👋 Benvenuti nello shop di Boston George 420!\n\n"
-        "Qui troverete tutti i prodotti ideali per voi o per il vostro business.\n\n"
-        "🤝 Consegna a mano disponibile (Meet Up)\n"
-        "🚚 Spedizioni (Ship)\n\n"
-        "🛍️ Cliccate in basso per aprire la vetrina!"
+        "👋 *Benvenuto nello shop ufficiale di Boston George 420!*\n\n"
+        "Un ecosistema rapido, sicuro e interattivo per consultare il nostro catalogo in tempo reale, effettuare ordini e monitorare ogni fase comodamente da Telegram.\n\n"
+        "🗺️ *Guida Rapida alla Vetrina*\n"
+        "Accedendo tramite il tasto in basso, troverai un'interfaccia moderna e intuitiva:\n\n"
+        "📂 *Filtri Categorie*: Trova subito prodotti per spedizione (Ship) o ritrovo (Meet Up).\n"
+        "🔍 *Dettaglio Prodotto*: Foto e video in HD con tutte le varianti di prezzo.\n"
+        "🛒 *Carrello Rapido*: Gestisci gli acquisti e invia l'ordine in un tap.\n"
+        "🏆 *Punti & Trofei*: Controlla il tuo saldo e i premi sbloccati.\n"
+        "🚚 *Tracking Ordini*: Traccia il tuo pacco in tempo reale.\n\n"
+        "👇 *Clicca sul pulsante qui sotto per aprire la vetrina!*"
     )
 
     markup = types.InlineKeyboardMarkup()
@@ -344,7 +350,8 @@ def send_welcome(message):
         btn = types.InlineKeyboardButton("🛍 Apri la vetrina", web_app=types.WebAppInfo(WEB_APP_URL))
         markup.add(btn)
 
-    bot.send_message(user_id, welcome_text, reply_markup=markup)
+    bot.send_message(user_id, welcome_text, parse_mode="Markdown", reply_markup=markup)
+    # --- FINE MODIFICA ---
 
 
 # --- COMANDI AMMINISTRATORE ---
