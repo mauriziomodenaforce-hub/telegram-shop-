@@ -55,7 +55,7 @@
         color: white !important; 
     }
 
-    /* --- STILI TUTORIAL ULTRA-PREMIUM 100/100 E GIVEAWAY --- */
+    /* --- TUTORIAL ULTRA-PREMIUM 100/100 --- */
     #tutorial-overlay {
         backdrop-filter: blur(16px);
         -webkit-backdrop-filter: blur(16px);
@@ -284,7 +284,9 @@
       <!-- Bacheca -->
       <div class="space-y-2">
         <span class="text-[10px] font-bold text-gray-500 uppercase tracking-[0.1em] block ml-1">Bacheca Trofei</span>
-        <div id="user-trophies-list" class="space-y-2 max-h-32 overflow-y-auto pr-1"></div>
+        <div id="user-trophies-list" class="space-y-2 max-h-32 overflow-y-auto pr-1">
+            <!-- La lista viene caricata via JS -->
+        </div>
       </div>
     </div>
   </div>
@@ -504,7 +506,6 @@
   <!-- TUTORIAL DINAMICO ULTRA-PREMIUM (PRIMO ACCESSO)      -->
   <!-- ---------------------------------------------------- -->
   <div id="tutorial-overlay" class="fixed inset-0 bg-black/70 z-[200] hidden flex-col justify-between p-6">
-    
     <!-- Header: Tasto Skip Minimal -->
     <div class="flex justify-end w-full pt-4">
       <button onclick="closeTutorial()" class="text-gray-500 hover:text-white text-[11px] font-bold uppercase tracking-[0.2em] transition-colors flex items-center bg-black/40 px-3 py-1.5 rounded-full backdrop-blur-sm border border-white/5">
@@ -520,7 +521,6 @@
 
       <!-- Contenitore animato per Icona, Titolo e Descrizione -->
       <div id="tutor-content-wrapper" class="content-fade space-y-5 py-4">
-        
         <!-- Icona -->
         <div class="w-20 h-20 bg-gray-900/80 border border-white/5 rounded-full flex items-center justify-center mx-auto text-emerald-400 shadow-inner relative">
           <div class="absolute inset-0 bg-emerald-500/10 rounded-full blur-xl"></div>
@@ -528,7 +528,6 @@
             <!-- Icona iniettata da JS -->
           </div>
         </div>
-
         <!-- Testi -->
         <div class="space-y-3">
           <h3 id="tutor-title" class="text-xl font-black text-white tracking-wide">Titolo</h3>
@@ -551,7 +550,6 @@
           <i data-lucide="arrow-right" id="tutor-next-icon" class="w-4 h-4 ml-1"></i>
         </button>
       </div>
-
     </div>
     
     <div class="pb-10"></div>
@@ -596,7 +594,6 @@
         modal.classList.add('hidden');
         modal.classList.remove('flex');
         
-        // Svuota il contenuto così il video si stoppa e non continua a suonare
         content.innerHTML = ''; 
     }
 
@@ -619,7 +616,6 @@
     window.addEventListener('touchstart', forcePlayAll, {once: true});
     window.addEventListener('click', forcePlayAll, {once: true});
 
-    // --- FUNZIONI DI BASE UI ---
     function toggleDrawer() {
       const drawer = document.getElementById('drawer');
       const overlay = document.getElementById('drawer-overlay');
@@ -637,7 +633,6 @@
         if(!text) {
             return "";
         }
-        // Converte @username in link telegram cliccabili blu
         return text.replace(/@(\w+)/g, '<a href="https://t.me/$1" target="_blank" class="text-blue-400 font-bold hover:underline">@$1</a>');
     }
 
@@ -656,7 +651,6 @@
         
         allProducts = data || [];
         
-        // Regola speciale: Sposta i prodotti "Meet Up" in cima alla lista
         allProducts.sort((a, b) => {
             const aMeet = (a.category || '').includes('Meet Up');
             const bMeet = (b.category || '').includes('Meet Up');
@@ -712,7 +706,6 @@
             media = [{ url: p.media_url, type: p.media_type || 'image' }];
         }
 
-        // Costruiamo le immagini/video per questa singola scheda (SLIDER NATIVO)
         let mediaSliderHTML = '';
         media.forEach(m => {
             mediaSliderHTML += `<div class="w-full h-full flex-shrink-0 media-item relative">`;
@@ -724,7 +717,6 @@
                 mediaSliderHTML += `<img class="w-full h-full object-cover pointer-events-none" src="${imageUrl}" />`;
             }
             
-            // IL FAMOSO TASTINO CHE ALLARGA LA FOTO A SCHERMO INTERO:
             mediaSliderHTML += `
             <div onclick="openMediaFullscreen('${m.url}', '${m.type}')" class="absolute top-2 right-2 bg-black/60 backdrop-blur-md p-2.5 rounded-full z-[60] cursor-pointer hover:bg-black/80 shadow-xl border border-gray-500/50 flex items-center justify-center" style="pointer-events: auto;">
                 <i data-lucide="maximize" class="w-5 h-5 text-white"></i>
@@ -822,7 +814,6 @@
                 modaleMediaHTML += `<img class="w-full h-full object-cover pointer-events-none" src="${m.url}" />`;
             }
             
-            // Anche nella modale, il tastino per espandere a tutto schermo il video!
             modaleMediaHTML += `
             <div onclick="openMediaFullscreen('${m.url}', '${m.type}')" class="absolute top-2 right-2 bg-black/60 backdrop-blur-md p-2.5 rounded-full z-[60] cursor-pointer hover:bg-black/80 shadow-xl border border-gray-500/50 flex items-center justify-center" style="pointer-events: auto;">
                 <i data-lucide="maximize" class="w-5 h-5 text-white"></i>
@@ -1101,32 +1092,29 @@
       }
     }
 
-    // --- MODALE PUNTI E TROFEI (AGGIORNATA PREMIUM) ---
+    // --- MODALE PUNTI E TROFEI (AGGIORNATA PREMIUM CON FIX UTENTE NUOVO) ---
     async function openTrophiesModal() {
       document.getElementById('trophies-modal').classList.remove('hidden');
       const userId = tg?.initDataUnsafe?.user?.id || 0;
       
-      if (!userId || !db) { 
-          document.getElementById('user-points-val').innerText = "50"; 
-          document.getElementById('points-progress-bar').style.width = "10%";
-          document.getElementById('user-trophies-list').innerHTML = `<div class="bg-gray-800 p-2.5 rounded-lg text-xs text-center text-gray-300">Nessun trofeo sbloccato.</div>`; 
-          return; 
-      }
+      // Impostiamo SEMPRE il default grafico prima di controllare, così non rimane mai vuoto o con i trattini
+      document.getElementById('user-points-val').innerText = "50"; 
+      setTimeout(() => { document.getElementById('points-progress-bar').style.width = "10%"; }, 100);
+      document.getElementById('user-trophies-list').innerHTML = `<div class="text-xs text-gray-500 text-center py-3">Nessun trofeo sbloccato al momento. Raggiungi i 500pt!</div>`; 
+
+      if (!userId || !db) return; 
       
       try {
         const { data } = await db.from('users').select('*').eq('telegram_id', userId);
         
         if (data && data.length > 0) {
           const user = data[0]; 
-          // Default 50 se vuoto, come i nuovi registrati
-          const pts = user.points || 50; 
+          // Se non ha ancora punti nel db (es. appena creato), impostiamo 50 forzato per il frontend
+          const pts = user.points !== undefined ? user.points : 50; 
           document.getElementById('user-points-val').innerText = pts;
           
           let progPercent = Math.min(100, (pts / 500) * 100);
-          // Effetto riempimento animato
-          setTimeout(() => {
-              document.getElementById('points-progress-bar').style.width = `${progPercent}%`;
-          }, 100);
+          document.getElementById('points-progress-bar').style.width = `${progPercent}%`;
 
           let trophies = user.trophies || [];
           if (typeof trophies === 'string') { 
@@ -1141,8 +1129,9 @@
                   tHTML += `<div class="bg-gray-800 border border-gray-700 p-2.5 rounded-xl text-xs font-bold text-amber-300 flex items-center space-x-2"><i data-lucide="trophy" class="w-4 h-4 text-amber-400"></i><span>${t}</span></div>`;
               });
               listDiv.innerHTML = tHTML;
-              lucide.createIcons();
+              if(window.lucide) window.lucide.createIcons();
           } else { 
+              // Assicuriamoci che scriva sempre "Nessun trofeo" se l'array è vuoto
               listDiv.innerHTML = `<div class="text-xs text-gray-500 text-center py-3">Nessun trofeo sbloccato al momento. Raggiungi i 500pt!</div>`; 
           }
         }
@@ -1193,7 +1182,7 @@
                     </button>
                 `;
             }
-            lucide.createIcons();
+            if(window.lucide) window.lucide.createIcons();
         } catch (e) {
             content.innerHTML = `<div class="text-center py-6 text-red-400 text-sm">Errore di connessione. Riprova più tardi.</div>`;
         }
@@ -1305,7 +1294,7 @@
     function openSupportModal() { 
         const modal = document.getElementById('support-modal');
         modal.classList.remove('hidden'); 
-        lucide.createIcons(); 
+        if(window.lucide) window.lucide.createIcons(); 
     }
     
     function closeSupportModal() { 
