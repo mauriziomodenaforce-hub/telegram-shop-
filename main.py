@@ -687,7 +687,7 @@ def handle_callbacks(call):
         bot.send_message(user_id, f"🚚 Invia ora il Codice di Tracking per l'Ordine #{o_id}:", reply_markup=get_cancel_keyboard())
 
 
-# --- GESTIONE INVIO FOTO E VIDEO ---
+# --- GESTIONE INVIO FOTO E VIDEO CORRETTO AL 100% ---
 @bot.message_handler(content_types=['photo', 'video'])
 def handle_media(message):
     user_id = message.chat.id
@@ -698,29 +698,36 @@ def handle_media(message):
     if state.get("step") not in ["WAITING_MEDIA", "WAITING_MEDIA_EDIT"]:
         return
 
+    # CONTROLLO LIMITE 20 MB DI TELEGRAM
+    if message.video:
+        if message.video.file_size > 20 * 1024 * 1024:
+            bot.reply_to(message, "❌ ERRORE: Il video supera i 20 MB!\n\nTelegram blocca i file più grandi di 20 MB per i bot. Per favore, invia un video più corto o compresso.")
+            return
+
     # Avvisa l'utente che il bot sta elaborando
-    wait_msg = bot.reply_to(message, "⏳ Elaborazione... sto caricando la foto sul tuo server Supabase, attendi...")
+    wait_msg = bot.reply_to(message, "⏳ Elaborazione... sto caricando il file sul tuo server Supabase, attendi...")
 
-    if message.photo:
-        file_id = message.photo[-1].file_id
-        media_type = 'image'
-        mime = 'image/jpeg'
-        ext = 'jpg'
-    else:
-        file_id = message.video.file_id
-        media_type = 'video'
-        mime = 'video/mp4'
-        ext = 'mp4'
-
-    # 1. Recupera il file da Telegram
-    file_info = bot.get_file(file_id)
-    file_url = f"https://api.telegram.org/file/bot{TELEGRAM_TOKEN}/{file_info.file_path}"
-    
+    # TUTTO ALL'INTERNO DEL BLOCCO TRY PER NON BLOCCARSI MAI PIU'
     try:
+        if message.photo:
+            file_id = message.photo[-1].file_id
+            media_type = 'image'
+            mime = 'image/jpeg'
+            ext = 'jpg'
+        else:
+            file_id = message.video.file_id
+            media_type = 'video'
+            mime = 'video/mp4'
+            ext = 'mp4'
+
+        # 1. Recupera il file da Telegram
+        file_info = bot.get_file(file_id)
+        file_url = f"https://api.telegram.org/file/bot{TELEGRAM_TOKEN}/{file_info.file_path}"
+        
         # Scarica in memoria
         file_bytes = requests.get(file_url).content
         
-        # --- FIX ASSOLUTO: SPACCHETTIAMO LA TUPLA (public_url, err_msg) ---
+        # 2. Carica definitivamente su Supabase Storage
         public_url, err_msg = upload_to_supabase_storage(file_bytes, mime, ext)
         
         if public_url:
@@ -736,8 +743,11 @@ def handle_media(message):
             )
         else:
             bot.edit_message_text(f"❌ Errore durante il caricamento su Supabase:\n{err_msg}", user_id, wait_msg.message_id)
+
+    except telebot.apihelper.ApiTelegramException as e:
+        bot.edit_message_text(f"❌ Errore Telegram (File troppo grande o non disponibile): {e}", user_id, wait_msg.message_id)
     except Exception as e:
-        bot.edit_message_text(f"❌ Errore scaricamento da Telegram: {e}", user_id, wait_msg.message_id)
+        bot.edit_message_text(f"❌ Errore di sistema: {e}", user_id, wait_msg.message_id)
 
 
 # --- WIZARD TESTUALE PER L'ADMIN ---
