@@ -353,8 +353,10 @@ def send_welcome(message):
     welcome_text = (
         "👋 Benvenuti nello shop di Boston George 420!\n\n"
         "Qui troverete tutti i prodotti ideali per voi o per il vostro business.\n\n"
-        "🤝 Consegna a mano disponibile (Meet Up)\n"
-        "🚚 Spedizioni (Ship)\n\n"
+        "📦 Tutti i PRODOTTI sono in pronta consegna\n"
+        "🤝 Consegna a mano disponibile\n\n"
+        "🚚 Spedizioni da:\n"
+        "🇮🇹 Italia | 🇪🇸 Spagna | 🇳🇱 Olanda | 🇺🇸 USA\n\n"
         "🛍️ Cliccate in basso per aprire la vetrina!"
     )
 
@@ -364,7 +366,6 @@ def send_welcome(message):
         markup.add(btn)
 
     bot.send_message(user_id, welcome_text, reply_markup=markup)
-
 
 # --- COMANDI AMMINISTRATORE ---
 @bot.message_handler(commands=['admin', 'cancel', 'menu'])
