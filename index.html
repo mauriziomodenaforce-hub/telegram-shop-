@@ -98,8 +98,8 @@
     // ----------------------------------------------------
     // CONFIGURAZIONE DATABASE (AGGIORNATA AL NUOVO SUPABASE)
     // ----------------------------------------------------
-    const SUPABASE_URL = "https://lmsdlwkmzbrhlqdaqmxh.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxtc2Rsd2ttemJyaGxxZGFxbXhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc1NzMxNTAsImV4cCI6MjEwMzE0OTE1MH0.1A-XFNp2Mu6TnxZ4M4REx6U71xEAVgSnSCgJJ2atboQ";
+    const SUPABASE_URL = "https://eofacgmryhvdlxzxhbes.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVvZmFjZ21yeWh2ZGx4enhoYmVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc2MDkzNDksImV4cCI6MjEwMzE4NTM0OX0.vXgRQJB9AAqCS_c2YEUB9z93O7hMSTaV2KNmeTlXRBk";
     
     let db;
     try { 
@@ -642,18 +642,15 @@
         if (!db) {
             throw new Error("Supabase non inizializzato");
         }
-
-        // 1. Rimosso il .eq('in_showcase', true) che mandava in blocco la query per differenze di formattazione DB
-        const { data, error } = await db.from('products').select('*').order('created_at', { ascending: false });
-
+        
+        const { data, error } = await db.from('products').select('*').eq('in_showcase', true).order('created_at', { ascending: false });
+        
         if (error) {
             throw error;
         }
-
-        // 2. Filtriamo in modo sicuro lato Javascript (i prodotti appaiono a meno che in_showcase non sia esplicitamente "false")
-        const rawProducts = data || [];
-        allProducts = rawProducts.filter(p => p.in_showcase !== false);
-
+        
+        allProducts = data || [];
+        
         allProducts.sort((a, b) => {
             const aMeet = (a.category || '').includes('Meet Up');
             const bMeet = (b.category || '').includes('Meet Up');
@@ -668,10 +665,9 @@
 
         document.getElementById('stat-products').innerText = allProducts.length;
         renderProducts(allProducts);
-
+        
       } catch (err) {
         const container = document.getElementById('products-grid');
-        // 3. STAMPA L'ERRORE REALE TECNICO SULLO SCHERMO AL POSTO DELLA VECCHIA SCRITTA ROSSA GENERICA
         container.innerHTML = `<div class="p-4 m-2 bg-red-900/50 border border-red-500 rounded-xl text-center text-red-100 text-sm font-mono break-words">ERRORE DI SISTEMA:<br>${err.message || JSON.stringify(err)}</div>`;
       }
     }
