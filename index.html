@@ -642,15 +642,18 @@
         if (!db) {
             throw new Error("Supabase non inizializzato");
         }
-        
-        const { data, error } = await db.from('products').select('*').eq('in_showcase', true).order('created_at', { ascending: false });
-        
+
+        // 1. Rimosso il .eq('in_showcase', true) che mandava in blocco la query per differenze di formattazione DB
+        const { data, error } = await db.from('products').select('*').order('created_at', { ascending: false });
+
         if (error) {
             throw error;
         }
-        
-        allProducts = data || [];
-        
+
+        // 2. Filtriamo in modo sicuro lato Javascript (i prodotti appaiono a meno che in_showcase non sia esplicitamente "false")
+        const rawProducts = data || [];
+        allProducts = rawProducts.filter(p => p.in_showcase !== false);
+
         allProducts.sort((a, b) => {
             const aMeet = (a.category || '').includes('Meet Up');
             const bMeet = (b.category || '').includes('Meet Up');
@@ -665,10 +668,11 @@
 
         document.getElementById('stat-products').innerText = allProducts.length;
         renderProducts(allProducts);
-        
+
       } catch (err) {
         const container = document.getElementById('products-grid');
-        container.innerHTML = `<div class="text-center py-4 text-red-400 text-sm">Impossibile caricare i prodotti.</div>`;
+        // 3. STAMPA L'ERRORE REALE TECNICO SULLO SCHERMO AL POSTO DELLA VECCHIA SCRITTA ROSSA GENERICA
+        container.innerHTML = `<div class="p-4 m-2 bg-red-900/50 border border-red-500 rounded-xl text-center text-red-100 text-sm font-mono break-words">ERRORE DI SISTEMA:<br>${err.message || JSON.stringify(err)}</div>`;
       }
     }
 
