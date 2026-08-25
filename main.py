@@ -2,18 +2,21 @@ import os
 import json
 import time
 import threading
-import uuid  # <-- AGGIUNTO per generare nomi unici per le foto
+import uuid  # <-- Genera nomi unici per le foto
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import requests
 import telebot
 from telebot import types
 
-# --- VARIABILI D'AMBIENTE ---
+# --- VARIABILI D'AMBIENTE E CHIAVI ---
 TELEGRAM_TOKEN = os.environ.get('TELEGRAM_TOKEN', '').strip()
 WEB_APP_URL = os.environ.get('WEB_APP_URL', '').strip()
-SUPABASE_URL = os.environ.get('SUPABASE_URL', '').strip().rstrip('/')
-SUPABASE_KEY = os.environ.get('SUPABASE_KEY', '').strip()
 ADMIN_ID = int(os.environ.get('ADMIN_ID', 0))
+
+# --- CREDENZIALI SUPABASE AGGIORNATE ---
+SUPABASE_URL = "https://eofacgmryhvdlxzxhbes.supabase.co"
+# Nel Bot usiamo la SERVICE ROLE KEY per avere i permessi massimi di scrittura e bypassare RLS per i file
+SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVvZmFjZ21yeWh2ZGx4enhoYmVzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NzYwOTM0OSwiZXhwIjoyMTAzMTg1MzQ5fQ.W9QI2kIPDEKAZVPTMi_3R4eC4xZadjGf7oqic4NcA4U"
 
 bot = telebot.TeleBot(TELEGRAM_TOKEN)
 
@@ -190,10 +193,11 @@ def db_update_giveaway(payload):
     except Exception:
         return False
 
-# --- NUOVA FUNZIONE: UPLOAD IMMAGINI/VIDEO SU SUPABASE STORAGE ---
+# --- FUNZIONE SISTEMATA: UPLOAD IMMAGINI/VIDEO SU SUPABASE STORAGE ---
 def upload_to_supabase_storage(file_bytes, mime_type, file_extension):
     filename = f"media_{int(time.time())}_{uuid.uuid4().hex[:6]}.{file_extension}"
-    url = f"{SUPABASE_URL}/storage/v1/object/offerte/{filename}"
+    # FIX APPLICATO QUI: Il bucket si chiama "PRODOTTI", non "offerte"
+    url = f"{SUPABASE_URL}/storage/v1/object/PRODOTTI/{filename}"
     headers = {
         "apikey": SUPABASE_KEY,
         "Authorization": f"Bearer {SUPABASE_KEY}",
@@ -202,7 +206,8 @@ def upload_to_supabase_storage(file_bytes, mime_type, file_extension):
     try:
         res = requests.post(url, headers=headers, data=file_bytes)
         if res.status_code in [200, 201]:
-            public_url = f"{SUPABASE_URL}/storage/v1/object/public/offerte/{filename}"
+            # Stessa cosa qui, cartella "PRODOTTI"
+            public_url = f"{SUPABASE_URL}/storage/v1/object/public/PRODOTTI/{filename}"
             return public_url, "OK"
         else:
             return None, f"Codice Errore {res.status_code}: {res.text}"
