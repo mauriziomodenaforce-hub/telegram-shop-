@@ -192,12 +192,8 @@ def db_update_giveaway(payload):
 
 # --- NUOVA FUNZIONE: UPLOAD IMMAGINI/VIDEO SU SUPABASE STORAGE ---
 def upload_to_supabase_storage(file_bytes, mime_type, file_extension):
-    # Genera un nome unico per il file così non ci sono doppioni
     filename = f"media_{int(time.time())}_{uuid.uuid4().hex[:6]}.{file_extension}"
-    
-    # URL di destinazione nel tuo bucket 'products'
-    url = f"{SUPABASE_URL}/storage/v1/object/products/{filename}"
-    
+    url = f"{SUPABASE_URL}/storage/v1/object/offerte/{filename}"
     headers = {
         "apikey": SUPABASE_KEY,
         "Authorization": f"Bearer {SUPABASE_KEY}",
@@ -206,14 +202,12 @@ def upload_to_supabase_storage(file_bytes, mime_type, file_extension):
     try:
         res = requests.post(url, headers=headers, data=file_bytes)
         if res.status_code in [200, 201]:
-            # Restituisce il link pubblico definitivo!
-            return f"{SUPABASE_URL}/storage/v1/object/public/products/{filename}"
+            public_url = f"{SUPABASE_URL}/storage/v1/object/public/offerte/{filename}"
+            return public_url, "OK"
         else:
-            print(f"Errore Storage: {res.text}")
-            return None
+            return None, f"Codice Errore {res.status_code}: {res.text}"
     except Exception as e:
-        print(f"Errore connessione Storage: {e}")
-        return None
+        return None, f"Eccezione: {str(e)}"
 
 
 # --- SERVER API PER RICEVERE GLI ORDINI DALLA MINI APP ---
