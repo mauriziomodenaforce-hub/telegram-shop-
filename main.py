@@ -195,7 +195,7 @@ def db_update_giveaway(payload):
 # --- FUNZIONE UPLOAD SU SUPABASE STORAGE ---
 def upload_to_supabase_storage(file_bytes, mime_type, file_extension):
     filename = f"media_{int(time.time())}_{uuid.uuid4().hex[:6]}.{file_extension}"
-    url = f"{SUPABASE_URL}/storage/v1/object/PRODOTTI/{filename}"
+    url = f"{SUPABASE_URL}/storage/v1/object/prodotti/{filename}"
     headers = {
         "apikey": SUPABASE_KEY,
         "Authorization": f"Bearer {SUPABASE_KEY}",
@@ -204,13 +204,12 @@ def upload_to_supabase_storage(file_bytes, mime_type, file_extension):
     try:
         res = requests.post(url, headers=headers, data=file_bytes)
         if res.status_code in [200, 201]:
-            public_url = f"{SUPABASE_URL}/storage/v1/object/public/PRODOTTI/{filename}"
+            public_url = f"{SUPABASE_URL}/storage/v1/object/public/prodotti/{filename}"
             return public_url, "OK"
         else:
             return None, f"Codice Errore {res.status_code}: {res.text}"
     except Exception as e:
         return None, f"Eccezione: {str(e)}"
-
 
 # --- SERVER API PER RICEVERE GLI ORDINI DALLA MINI APP ---
 class HealthCheckHandler(BaseHTTPRequestHandler):
