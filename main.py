@@ -15,7 +15,6 @@ ADMIN_ID = int(os.environ.get('ADMIN_ID', 0))
 
 # --- CREDENZIALI SUPABASE AGGIORNATE ---
 SUPABASE_URL = "https://eofacgmryhvdlxzxhbes.supabase.co"
-# Nel Bot usiamo la SERVICE ROLE KEY per avere i permessi massimi di scrittura e bypassare RLS per i file
 SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVvZmFjZ21yeWh2ZGx4enhoYmVzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NzYwOTM0OSwiZXhwIjoyMTAzMTg1MzQ5fQ.W9QI2kIPDEKAZVPTMi_3R4eC4xZadjGf7oqic4NcA4U"
 
 bot = telebot.TeleBot(TELEGRAM_TOKEN)
@@ -193,10 +192,9 @@ def db_update_giveaway(payload):
     except Exception:
         return False
 
-# --- FUNZIONE SISTEMATA: UPLOAD IMMAGINI/VIDEO SU SUPABASE STORAGE ---
+# --- FUNZIONE UPLOAD SU SUPABASE STORAGE ---
 def upload_to_supabase_storage(file_bytes, mime_type, file_extension):
     filename = f"media_{int(time.time())}_{uuid.uuid4().hex[:6]}.{file_extension}"
-    # FIX APPLICATO QUI: Il bucket si chiama "PRODOTTI", non "offerte"
     url = f"{SUPABASE_URL}/storage/v1/object/PRODOTTI/{filename}"
     headers = {
         "apikey": SUPABASE_KEY,
@@ -206,7 +204,6 @@ def upload_to_supabase_storage(file_bytes, mime_type, file_extension):
     try:
         res = requests.post(url, headers=headers, data=file_bytes)
         if res.status_code in [200, 201]:
-            # Stessa cosa qui, cartella "PRODOTTI"
             public_url = f"{SUPABASE_URL}/storage/v1/object/public/PRODOTTI/{filename}"
             return public_url, "OK"
         else:
@@ -690,7 +687,7 @@ def handle_callbacks(call):
         bot.send_message(user_id, f"🚚 Invia ora il Codice di Tracking per l'Ordine #{o_id}:", reply_markup=get_cancel_keyboard())
 
 
-# --- GESTIONE INVIO FOTO E VIDEO (ORA SI SALVANO SU SUPABASE) ---
+# --- GESTIONE INVIO FOTO E VIDEO ---
 @bot.message_handler(content_types=['photo', 'video'])
 def handle_media(message):
     user_id = message.chat.id
@@ -723,8 +720,8 @@ def handle_media(message):
         # Scarica in memoria
         file_bytes = requests.get(file_url).content
         
-        # 2. Carica definitivamente su Supabase Storage!
-        public_url = upload_to_supabase_storage(file_bytes, mime, ext)
+        # --- FIX ASSOLUTO: SPACCHETTIAMO LA TUPLA (public_url, err_msg) ---
+        public_url, err_msg = upload_to_supabase_storage(file_bytes, mime, ext)
         
         if public_url:
             if "media_list" not in user_states[user_id]:
@@ -738,7 +735,7 @@ def handle_media(message):
                 user_id, wait_msg.message_id, reply_markup=get_media_done_keyboard()
             )
         else:
-            bot.edit_message_text("❌ Si è verificato un errore durante il caricamento su Supabase.", user_id, wait_msg.message_id)
+            bot.edit_message_text(f"❌ Errore durante il caricamento su Supabase:\n{err_msg}", user_id, wait_msg.message_id)
     except Exception as e:
         bot.edit_message_text(f"❌ Errore scaricamento da Telegram: {e}", user_id, wait_msg.message_id)
 
