@@ -512,14 +512,16 @@ def handle_callbacks(call):
     elif data == "p_add":
         user_states.pop(user_id, None)
         markup = types.InlineKeyboardMarkup(row_width=1)
-        cats = [
+              cats = [
             "🤝 Roma (Meet Up)",
             "🤝 Fondi (Meet Up)",
+            "🤝 Terracina (Meet Up)",
             "🇮🇹 Italia (Ship)",
             "🇪🇸 Spagna (Ship)",
             "🇳🇱 Olanda (Ship)",
             "🇺🇸 USA (Ship)"
         ]
+
         markup.add(*[types.InlineKeyboardButton(c, callback_data=f"addcat_{c}") for c in cats])
         markup.add(types.InlineKeyboardButton("🔙 Torna al Menu Principale", callback_data="m_main"))
         bot.edit_message_text("Seleziona la categoria del prodotto:", user_id, call.message.message_id, reply_markup=markup)
